@@ -1,0 +1,7 @@
+{
+  "gitlab_url": "https://gitlab",
+  "access_token": "",
+  "group_id": "123",
+  "providers": ["namespace", "url", "ssh"],
+  "provider_specific_configuration": {}
+}
