@@ -175,3 +175,6 @@ cython_debug/
 
 .idea
 /config.json
+/providers_implementation/*.py
+/providers_implementation/tests
+!/providers_implementation/default_providers.py

@@ -1,3 +1,0 @@
-{
-  "domain_regexp": "global-sector\\/local-sector\\/com\\/sector\\/(?:modules|components)\\/([^\\/]+)"
-}

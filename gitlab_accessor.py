@@ -1,3 +1,4 @@
+import base64
 import json
 from urllib.request import Request, urlopen
 

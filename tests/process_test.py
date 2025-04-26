@@ -291,17 +291,15 @@ module = {
 
 class ProcessTestCase(unittest.TestCase):
     def test_process(self):
-        providers = ['domain', 'ssh', 'url', 'namespace']
+        providers = ['name', 'archived', 'ssh', 'url', 'namespace']
         projects = process(providers, [[module], [component]])
 
         module_project = {'archived': False,
-                          'domain': 'domain',
                           'namespace': 'global-sector/local-sector/com/sector/modules/domain',
                           'ssh': 'ssh://git@gitlab:2222/global-sector/local-sector/com/sector/modules/domain/com-module.git',
                           'url': 'https://gitlab/global-sector/local-sector/com/sector/modules/domain/com-module',
                           'name': 'com-module'}
         component_project = {'archived': False,
-                             'domain': 'com-component',
                              'namespace': 'global-sector/local-sector/com/sector/components',
                              'ssh': 'ssh://git@gitlab:2222/global-sector/local-sector/com/sector/components/com-component.git',
                              'url': 'https://gitlab/global-sector/local-sector/com/sector/components/com-component',

@@ -1,6 +1,8 @@
+from configuration_reader import read_configuration
 from gitlab_accessor import GitlabAccessor
 from providers.providers_registry import providers_registry
-from providers_implementation.providers_impl import *
+# import providers, do not remove
+from providers_implementation import *
 
 
 def process(providers: list[str], pages: list[list[dict]]) -> list[dict]:
@@ -12,8 +14,7 @@ def process(providers: list[str], pages: list[list[dict]]) -> list[dict]:
 
 
 def process_project(providers: list[str], gitlab_project: dict) -> dict:
-    project = {'name': gitlab_project['name'], 'archived': gitlab_project["archived"]}
-
+    project = {}
     for provider in providers:
         project[provider] = providers_registry[provider](gitlab_project)
     return project

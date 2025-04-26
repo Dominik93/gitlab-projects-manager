@@ -6,4 +6,5 @@ def add_provider(key):
         providers_registry[key] = func
         return func
 
+    print(f'Register {key}')
     return _add_provider
