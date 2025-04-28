@@ -1,6 +1,7 @@
 from configuration_reader import read_configuration
 from gitlab_accessor import GitlabAccessor
 from providers.providers_registry import providers_registry
+from store import load
 # import providers, do not remove
 from providers_implementation import *
 
@@ -24,4 +25,5 @@ if __name__ == "__main__":
     configuration = read_configuration()
     accessor = GitlabAccessor(configuration['gitlab_url'], configuration['access_token'])
     projects_pages = accessor.get_all_projects(configuration['group_id'])
-    print(process(configuration['providers'], projects_pages))
+    projects = load(lambda: process(configuration['providers'], projects_pages))
+    print(projects)
