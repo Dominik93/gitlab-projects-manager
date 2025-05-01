@@ -25,5 +25,5 @@ if __name__ == "__main__":
     configuration = read_configuration()
     accessor = GitlabAccessor(configuration['gitlab_url'], configuration['access_token'])
     projects_pages = accessor.get_all_projects(configuration['group_id'])
-    projects = load(lambda: process(configuration['providers'], projects_pages))
+    projects = load(lambda: process(configuration['providers'], projects_pages), configuration['group_id'])
     print(projects)
