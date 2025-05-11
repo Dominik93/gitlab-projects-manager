@@ -1,16 +1,8 @@
 import os
 
 from configuration_reader import read_configuration
+from count_executor import run_countable
 from store import get
-
-
-def _count_executor(items, executor):
-    i = 0
-    total = len(items)
-    for item in items:
-        executor(item)
-        i += 1
-        print(f'Executed {i}/{total}')
 
 
 def _clone(config, project):
@@ -36,5 +28,5 @@ def _pull(config, project):
 if __name__ == "__main__":
     configuration = read_configuration()
     projects = get(configuration['group_id'])
-    _count_executor(projects, lambda x: _clone(configuration, x))
-    _count_executor(projects, lambda x: _pull(configuration, x))
+    run_countable(projects, lambda x: _clone(configuration, x))
+    run_countable(projects, lambda x: _pull(configuration, x))
