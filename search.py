@@ -17,7 +17,8 @@ def _hit(text, regexp, content):
     return Exception("Text and regexp are None")
 
 
-def _search_in_project(project_directory: str, text: str = None, regexp: str = None, file_extension: str = None) -> list[str]:
+def _search_in_project(project_directory: str, text: str = None,
+                       regexp: str = None, file_extension: str = None) -> list[str]:
     hits = []
     for (dirpath, dirnames, filenames) in os.walk(project_directory):
         dirnames[:] = list(filter(lambda x: x not in EXCLUDED, dirnames))
@@ -37,9 +38,16 @@ def search(project_paths: list, text: str = None, regexp: str = None, file_exten
     return reduce(list.__add__, search_results)
 
 
+def _apply_filter(projects):
+    filtered_projects = list(filter(lambda x: x, projects))
+    return filtered_projects
+
+
 if __name__ == "__main__":
     configuration = read_configuration()
     directory = configuration['management']['directory']
-    projects = list(map(lambda x: f"{directory}/{x['namespace']}/{x['name']}", get(configuration['group_id'])))
+    projects = get(configuration['group_id'])
+    projects = _apply_filter(projects)
+    projects = list(map(lambda x: f"{directory}/{x['namespace']}/{x['name']}", projects))
     results = search(projects, "", "", "")
     print(*results, sep='\n')

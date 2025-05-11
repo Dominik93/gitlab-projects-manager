@@ -1,5 +1,5 @@
-import count_executor
 from configuration_reader import read_configuration
+from count_executor import provide_countable
 from gitlab_accessor import GitlabAccessor
 from providers.providers_registry import providers_registry
 from store import load
@@ -15,7 +15,7 @@ def _process_project(providers: list[str], gitlab_project: dict) -> dict:
 
 
 def process(providers: list[str], pages: list[dict]) -> list[dict]:
-    return count_executor.provide_countable(pages, lambda x: _process_project(providers, x))
+    return provide_countable(pages, lambda x: _process_project(providers, x))
 
 
 if __name__ == "__main__":
