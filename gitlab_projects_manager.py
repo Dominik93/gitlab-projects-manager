@@ -1,3 +1,4 @@
+import count_executor
 from configuration_reader import read_configuration
 from gitlab_accessor import GitlabAccessor
 from providers.providers_registry import providers_registry
@@ -6,19 +7,15 @@ from store import load
 from providers_implementation import *
 
 
-def process(providers: list[str], pages: list[list[dict]]) -> list[dict]:
-    projects = []
-    for page in pages:
-        for project in page:
-            projects.append(process_project(providers, project))
-    return projects
-
-
-def process_project(providers: list[str], gitlab_project: dict) -> dict:
+def _process_project(providers: list[str], gitlab_project: dict) -> dict:
     project = {}
     for provider in providers:
         project[provider] = providers_registry[provider](gitlab_project)
     return project
+
+
+def process(providers: list[str], pages: list[dict]) -> list[dict]:
+    return count_executor.provide_countable(pages, lambda x: _process_project(providers, x))
 
 
 if __name__ == "__main__":

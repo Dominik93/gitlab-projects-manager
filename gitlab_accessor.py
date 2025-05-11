@@ -20,13 +20,14 @@ class GitlabAccessor:
         return base64.standard_b64decode(response["content"])
 
     def get_all_projects(self, group_id: str) -> list:
+        projects_pages = []
         page = 1
         project_page = self._get_projects_page(group_id, page)
-        projects_pages = [project_page]
+        projects_pages.extend(project_page)
         while len(project_page) == 100:
             page = page + 1
             project_page = self._get_projects_page(group_id, page)
-            projects_pages.append(project_page)
+            projects_pages.extend(project_page)
         return projects_pages
 
     def _get_projects_page(self, group_id: str, page: int):

@@ -292,7 +292,7 @@ module = {
 class ProcessTestCase(unittest.TestCase):
     def test_process(self):
         providers = ['name', 'archived', 'ssh', 'url', 'namespace']
-        projects = process(providers, [[module], [component]])
+        projects = process(providers, [module, component])
 
         module_project = {'archived': False,
                           'namespace': 'global-sector/local-sector/com/sector/modules/domain',

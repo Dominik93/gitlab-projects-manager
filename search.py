@@ -17,8 +17,8 @@ def _hit(text, regexp, content):
     return Exception("Text and regexp are None")
 
 
-def _search_in_project(project_directory: str, text: str = None, regexp: str = None, file_extension: str = None):
-    results = []
+def _search_in_project(project_directory: str, text: str = None, regexp: str = None, file_extension: str = None) -> list[str]:
+    hits = []
     for (dirpath, dirnames, filenames) in os.walk(project_directory):
         dirnames[:] = list(filter(lambda x: x not in EXCLUDED, dirnames))
         for file in list(filter(lambda x: file_extension is None or file_extension in x, filenames)):
@@ -28,13 +28,13 @@ def _search_in_project(project_directory: str, text: str = None, regexp: str = N
             file_content = f.read()
             f.close()
             if _hit(text, regexp, file_content):
-                results.append(path)
-    return results
+                hits.append(path)
+    return hits
 
 
-def search(projects: list, text: str = None, regexp: str = None, file_extension: str = None):
-    results = provide_countable(projects, lambda x: _search_in_project(x, text, regexp, file_extension))
-    return reduce(list.__add__, results)
+def search(project_paths: list, text: str = None, regexp: str = None, file_extension: str = None):
+    search_results = provide_countable(project_paths, lambda x: _search_in_project(x, text, regexp, file_extension))
+    return reduce(list.__add__, search_results)
 
 
 if __name__ == "__main__":
