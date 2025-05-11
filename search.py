@@ -20,7 +20,7 @@ def _hit(text, regexp, content):
 def _search_in_project(project_directory: str, text: str = None, regexp: str = None, file_extension: str = None):
     results = []
     for (dirpath, dirnames, filenames) in os.walk(project_directory):
-        dirnames[:] = list(filter(lambda x: x in EXCLUDED, dirnames))
+        dirnames[:] = list(filter(lambda x: x not in EXCLUDED, dirnames))
         for file in list(filter(lambda x: file_extension is None or file_extension in x, filenames)):
             path = dirpath + '/' + file
             print(f'Search {path}')
