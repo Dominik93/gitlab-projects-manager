@@ -41,4 +41,5 @@ if __name__ == "__main__":
     configuration = read_configuration()
     directory = configuration['management']['directory']
     projects = list(map(lambda x: f"{directory}/{x['namespace']}/{x['name']}", get(configuration['group_id'])))
-    print(search(projects, "", "", ""))
+    results = search(projects, "", "", "")
+    print(*results, sep='\n')
