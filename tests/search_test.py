@@ -5,24 +5,24 @@ from search import search
 
 class SearchTestCase(unittest.TestCase):
     def test_search_all_files(self):
-        actual = search("./resources", ['component', 'module'], "text to search")
+        actual = search(['./resources/component', './resources/module'], "text to search")
         expected = ['./resources/component/test_java.java', './resources/component/test_txt.txt',
                     './resources/module/test_java.java']
         self.assertEqual(expected, actual)
 
     def test_search_regexp(self):
-        actual = search("./resources", ['component', 'module'], ".*to.*")
+        actual = search(['./resources/component', './resources/module'], regexp=".*to.*")
         expected = ['./resources/component/test_java.java', './resources/component/test_txt.txt',
                     './resources/module/test_java.java']
         self.assertEqual(expected, actual)
 
     def test_search_only_java(self):
-        actual = search("./resources", ['component', 'module'], "text to search", '.java')
+        actual = search(['./resources/component', './resources/module'], "text to search", file_extension='.java')
         expected = ['./resources/component/test_java.java', './resources/module/test_java.java']
         self.assertEqual(expected, actual)
 
     def test_not_found_text(self):
-        actual = search("./resources", ['component', 'module'], "not found")
+        actual = search(['./resources/component', './resources/module'], "not found")
         expected = []
         self.assertEqual(expected, actual)
 
