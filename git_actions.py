@@ -1,8 +1,8 @@
 import os
 
 from configuration_reader import read_configuration
-from count_executor import run_countable
 from commons.store import create_store, Storage
+from commons.countable_processor import CountableProcessor, ExceptionStrategy
 
 
 def _clone(config, project):
@@ -39,5 +39,6 @@ def _pull(config, project):
 if __name__ == "__main__":
     configuration = read_configuration()
     projects = create_store(Storage.PICKLE).load({}, configuration['project']['group_id'])
-    run_countable(projects, lambda x: _clone(configuration, x))
-    run_countable(projects, lambda x: _pull(configuration, x))
+
+    CountableProcessor(lambda x: _clone(configuration, x), strategy=ExceptionStrategy.PASS).run(projects)
+    CountableProcessor(lambda x: _pull(configuration, x), strategy=ExceptionStrategy.PASS).run(projects)

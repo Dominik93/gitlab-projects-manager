@@ -1,9 +1,11 @@
+from commons.countable_processor import CountableProcessor
+from commons.store import create_store, Storage
 from configuration_reader import read_configuration
-from count_executor import provide_countable
 from gitlab_accessor import GitlabAccessor
 from providers.providers_registry import providers_registry
+
 # import providers, do not remove
-from commons.store import create_store, Storage
+from providers_implementation import *
 
 
 def _process_project(providers: list[str], gitlab_project: dict) -> dict:
@@ -14,7 +16,7 @@ def _process_project(providers: list[str], gitlab_project: dict) -> dict:
 
 
 def process(providers: list[str], pages: list[dict]) -> list[dict]:
-    return provide_countable(pages, lambda x: _process_project(providers, x))
+    return CountableProcessor(lambda x: _process_project(providers, x)).run(pages)
 
 
 if __name__ == "__main__":

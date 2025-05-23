@@ -2,9 +2,9 @@ import os
 import re
 from functools import reduce
 
-from configuration_reader import read_configuration
-from count_executor import provide_countable
+from commons.countable_processor import CountableProcessor
 from commons.store import create_store, Storage
+from configuration_reader import read_configuration
 
 EXCLUDED = ['.git']
 
@@ -33,8 +33,8 @@ def _search_in_project(project_directory: str, text: str = None,
     return hits
 
 
-def search(project_paths: list, text: str = None, regexp: str = None, file_extension: str = None):
-    search_results = provide_countable(project_paths, lambda x: _search_in_project(x, text, regexp, file_extension))
+def search(paths: list, text: str = None, regexp: str = None, file_extension: str = None):
+    search_results = CountableProcessor(lambda x: _search_in_project(x, text, regexp, file_extension)).run(paths)
     return reduce(list.__add__, search_results)
 
 
