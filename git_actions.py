@@ -33,7 +33,7 @@ def _pull(config, project):
         if _is_clear(status):
             command = f"git -C {project_directory} pull"
             print(f'Execute {command}')
-    os.popen(command).read()
+            os.popen(command).read()
 
 
 if __name__ == "__main__":
