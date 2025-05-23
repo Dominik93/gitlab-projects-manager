@@ -4,7 +4,7 @@ from functools import reduce
 
 from configuration_reader import read_configuration
 from count_executor import provide_countable
-from store import get
+from commons.store import create_store, Storage
 
 EXCLUDED = ['.git']
 
@@ -46,7 +46,7 @@ def _apply_filter(projects):
 if __name__ == "__main__":
     configuration = read_configuration()
     directory = configuration['management']['directory']
-    projects = get(configuration['project']['group_id'])
+    projects = create_store(Storage.PICKLE).load({}, configuration['project']['group_id'])
     projects = _apply_filter(projects)
     projects = list(map(lambda x: f"{directory}/{x['namespace']}/{x['name']}", projects))
     results = search(projects, "", "", "")

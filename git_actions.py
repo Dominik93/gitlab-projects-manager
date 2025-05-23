@@ -2,7 +2,7 @@ import os
 
 from configuration_reader import read_configuration
 from count_executor import run_countable
-from store import get
+from commons.store import create_store, Storage
 
 
 def _clone(config, project):
@@ -38,6 +38,6 @@ def _pull(config, project):
 
 if __name__ == "__main__":
     configuration = read_configuration()
-    projects = get(configuration['project']['group_id'])
+    projects = create_store(Storage.PICKLE).load({}, configuration['project']['group_id'])
     run_countable(projects, lambda x: _clone(configuration, x))
     run_countable(projects, lambda x: _pull(configuration, x))

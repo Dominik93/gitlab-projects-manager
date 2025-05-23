@@ -2,9 +2,8 @@ from configuration_reader import read_configuration
 from count_executor import provide_countable
 from gitlab_accessor import GitlabAccessor
 from providers.providers_registry import providers_registry
-from store import load
 # import providers, do not remove
-from providers_implementation import *
+from commons.store import create_store, Storage
 
 
 def _process_project(providers: list[str], gitlab_project: dict) -> dict:
@@ -22,5 +21,6 @@ if __name__ == "__main__":
     configuration = read_configuration()
     accessor = GitlabAccessor(configuration['git']['gitlab_url'], configuration['git']['access_token'])
     projects_pages = accessor.get_all_projects(configuration['project']['group_id'])
-    projects = load(lambda: process(configuration['providers'], projects_pages), configuration['git']['group_id'])
+    projects = create_store(Storage.PICKLE).load(lambda: process(configuration['providers'], projects_pages),
+                                                 configuration['project']['group_id'])
     print(projects)
