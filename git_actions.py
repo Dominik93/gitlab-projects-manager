@@ -14,8 +14,9 @@ def _clone(config, project):
 
 
 def _is_clear(status):
-    return ("Changes to be committed" in status or
-            "Changes not staged for commit:" in status)
+    return not ("Changes to be committed" in status or
+                "Changes not staged for commit:" in status or
+                "Your branch is ahead of" in status)
 
 
 def _pull(config, project):
