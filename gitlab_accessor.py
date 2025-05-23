@@ -2,6 +2,8 @@ import base64
 import json
 from urllib.request import Request, urlopen
 
+from commons.logger import Level, log
+
 
 class GitlabAccessor:
 
@@ -12,11 +14,7 @@ class GitlabAccessor:
     def get_file(self, project_id, file):
         url_template = '/api/v4/projects/{project_id}/repository/files/{file}?ref=master'
         url = self._get_full_url(url_template.replace("{project_id}", str(project_id)).replace("{file}", file))
-        print('Get ' + file + ' from ' + url)
-        req = Request(url)
-        req.add_header('PRIVATE-TOKEN', self.token)
-        content = urlopen(req).read()
-        response = json.loads(content)
+        response = self._execute_request(url)
         return base64.standard_b64decode(response["content"])
 
     def get_all_projects(self, group_id: str) -> list:
@@ -33,12 +31,14 @@ class GitlabAccessor:
     def _get_projects_page(self, group_id: str, page: int):
         url_template = '/api/v4/groups/{groupId}/projects?include_subgroups=true&page={page}&per_page=100'
         url = self._get_full_url(url_template.replace("{groupId}", group_id).replace("{page}", str(page)))
-        print('Get ' + group_id + ' from ' + url)
-        req = Request(url)
-        req.add_header('PRIVATE-TOKEN', self.token)
-        content = urlopen(req).read()
-        response = json.loads(content)
-        return response
+        return self._execute_request(url)
 
     def _get_full_url(self, url: str):
         return self.base_url + url
+
+    @log(Level.INFO)
+    def _execute_request(self, url):
+        req = Request(url)
+        req.add_header('PRIVATE-TOKEN', self.token)
+        content = urlopen(req).read()
+        return json.loads(content)

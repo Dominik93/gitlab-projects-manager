@@ -1,16 +1,20 @@
 import os
 
-from configuration_reader import read_configuration
-from commons.store import create_store, Storage
 from commons.countable_processor import CountableProcessor, ExceptionStrategy
+from commons.logger import log, Level
+from commons.store import create_store, Storage
+from configuration_reader import read_configuration
+
+
+@log(Level.INFO, start_message="Execute {args} ", end_message="Command {args} executed in {duration}ms")
+def _git(command):
+    return os.popen(command).read()
 
 
 def _clone(config, project):
     directory = config['management']['directory']
     project_directory = f"{directory}/{project['namespace']}/{project['name']}"
-    command = f"git clone {project['ssh']} {project_directory}"
-    print(f'Execute {command}')
-    os.popen(command).read()
+    _git(f"git clone {project['ssh']} {project_directory}")
 
 
 def _is_clear(status):
@@ -23,17 +27,11 @@ def _pull(config, project):
     directory = config['management']['directory']
     default_branch = config['git']['default_branch']
     project_directory = f"{directory}/{project['namespace']}/{project['name']}"
-    command = f"git -C {project_directory} branch --show-current"
-    print(f'Execute {command}')
-    current_branch = os.popen(command).read().rstrip()
+    current_branch = _git(f"git -C {project_directory} branch --show-current").rstrip()
     if current_branch == default_branch:
-        command = f"git -C {project_directory} status"
-        print(f'Execute {command}')
-        status = os.popen(command).read().rstrip()
+        status = _git(f"git -C {project_directory} status").rstrip()
         if _is_clear(status):
-            command = f"git -C {project_directory} pull"
-            print(f'Execute {command}')
-            os.popen(command).read()
+            _git(f"git -C {project_directory} pull")
 
 
 if __name__ == "__main__":

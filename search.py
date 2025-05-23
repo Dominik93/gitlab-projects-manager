@@ -3,6 +3,7 @@ import re
 from functools import reduce
 
 from commons.countable_processor import CountableProcessor
+from commons.logger import log, Level
 from commons.store import create_store, Storage
 from configuration_reader import read_configuration
 
@@ -24,23 +25,28 @@ def _search_in_project(project_directory: str, text: str = None,
         dirnames[:] = list(filter(lambda x: x not in EXCLUDED, dirnames))
         for file in list(filter(lambda x: file_extension is None or file_extension in x, filenames)):
             path = dirpath + '/' + file
-            print(f'Search {path}')
-            f = open(path, "r", encoding="utf8")
-            file_content = f.read()
-            f.close()
+            file_content = _read(path)
             if _hit(text, regexp, file_content):
                 hits.append(path)
     return hits
 
 
-def search(paths: list, text: str = None, regexp: str = None, file_extension: str = None):
-    search_results = CountableProcessor(lambda x: _search_in_project(x, text, regexp, file_extension)).run(paths)
-    return reduce(list.__add__, search_results)
+@log(level=Level.DEBUG, start_message="Search {args}")
+def _read(path):
+    f = open(path, "r", encoding="utf8")
+    file_content = f.read()
+    f.close()
+    return file_content
 
 
 def _apply_filter(projects):
     filtered_projects = list(filter(lambda x: x, projects))
     return filtered_projects
+
+
+def search(paths: list, text: str = None, regexp: str = None, file_extension: str = None):
+    search_results = CountableProcessor(lambda x: _search_in_project(x, text, regexp, file_extension)).run(paths)
+    return reduce(list.__add__, search_results)
 
 
 if __name__ == "__main__":
