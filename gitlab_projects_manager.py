@@ -20,7 +20,7 @@ def process(providers: list[str], pages: list[dict]) -> list[dict]:
 
 if __name__ == "__main__":
     configuration = read_configuration()
-    accessor = GitlabAccessor(configuration['gitlab_url'], configuration['access_token'])
-    projects_pages = accessor.get_all_projects(configuration['group_id'])
-    projects = load(lambda: process(configuration['providers'], projects_pages), configuration['group_id'])
+    accessor = GitlabAccessor(configuration['git']['gitlab_url'], configuration['git']['access_token'])
+    projects_pages = accessor.get_all_projects(configuration['project']['group_id'])
+    projects = load(lambda: process(configuration['providers'], projects_pages), configuration['git']['group_id'])
     print(projects)

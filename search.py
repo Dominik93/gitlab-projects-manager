@@ -46,7 +46,7 @@ def _apply_filter(projects):
 if __name__ == "__main__":
     configuration = read_configuration()
     directory = configuration['management']['directory']
-    projects = get(configuration['group_id'])
+    projects = get(configuration['project']['group_id'])
     projects = _apply_filter(projects)
     projects = list(map(lambda x: f"{directory}/{x['namespace']}/{x['name']}", projects))
     results = search(projects, "", "", "")

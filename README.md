@@ -7,15 +7,18 @@ providers you want to use and other specific configuration.
 
 ```json
 {
-  "gitlab_url": "https://gitlab",
-  "access_token": "",
-  "group_id": "123",
-  "providers": [
-    "namespace",
-    "url",
-    "ssh"
-  ],
-  "provider_specific_configuration": ""
+  "git": {
+    "url": "https://gitlab",
+    "access_token": "",
+    "default_branch": "master"
+  },
+  "project": {
+    "group_id": "123"
+  },
+  "providers": ["name", "archived", "namespace", "url", "ssh"],
+  "management": {
+    "directory": "/path"
+  }
 }
 ```
 
@@ -54,7 +57,10 @@ config.json
     "domain",
     "url",
     "ssh"
-  ]
+  ],
+  "management": {
+    "directory": "/path"
+  }
 }
 ```
 
