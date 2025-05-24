@@ -44,7 +44,7 @@ def sample_provider(project):
     return {} | ""
 ```
 
-To read configuration use `read_configuration()`.
+To read configuration use `read_configuration(str)`.
 
 # Example
 

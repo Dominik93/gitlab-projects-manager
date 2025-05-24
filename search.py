@@ -2,12 +2,12 @@ import os
 import re
 from functools import reduce
 
+from commons.configuration_reader import read_configuration
 from commons.countable_processor import CountableProcessor
 from commons.csv_writer import write
 from commons.logger import log, Level
 from commons.optional import Optional, of, empty
 from commons.store import create_store, Storage
-from configuration_reader import read_configuration
 from exclude_filter import filter_not_excluded_projects
 
 EXCLUDED = ['.git']
@@ -94,10 +94,11 @@ def search(paths: list, config: SearchConfiguration):
 
 
 if __name__ == "__main__":
-    configuration = read_configuration()
+    configuration = read_configuration("config")
     directory = configuration['management']['directory']
-    excluded = configuration['project']['excluded']
-    projects = create_store(Storage.PICKLE).load({}, configuration['project']['group_id'])
+    project = configuration['project']
+    excluded = project['excluded']
+    projects = create_store(Storage.PICKLE).load({}, project['group_id'])
     projects = filter_not_excluded_projects(excluded, projects)
     projects = _apply_filter(projects)
     projects = list(map(lambda x: f"{directory}/{x['namespace']}/{x['name']}", projects))

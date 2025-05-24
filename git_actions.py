@@ -4,7 +4,7 @@ from commons.countable_processor import CountableProcessor, ExceptionStrategy
 from commons.csv_writer import write
 from commons.logger import log, Level
 from commons.store import create_store, Storage
-from configuration_reader import read_configuration
+from commons.configuration_reader import read_configuration
 from exclude_filter import filter_not_excluded_projects
 
 
@@ -46,7 +46,7 @@ def _pull(config, project):
 
 
 if __name__ == "__main__":
-    configuration = read_configuration()
+    configuration = read_configuration("config")
     excluded = configuration['project']['excluded']
     projects = create_store(Storage.PICKLE).load({}, configuration['project']['group_id'])
     projects = filter_not_excluded_projects(excluded, projects)
