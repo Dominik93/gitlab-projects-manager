@@ -1,6 +1,6 @@
 def filter_projects(projects, excluded, included):
     filtered_projects = exclude_projects(projects, excluded)
-    filtered_projects = include_projects(projects, included)
+    filtered_projects = include_projects(filtered_projects, included)
     return filtered_projects
 
 
