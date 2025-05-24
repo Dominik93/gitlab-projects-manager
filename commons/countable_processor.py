@@ -16,18 +16,21 @@ class CountableProcessor:
         self.item_processor = item_processor
 
     def run(self, items: list):
-        start = time.time_ns()
+        all_start = time.time_ns()
         total = len(items)
         for idx, item in enumerate(items):
+            item_start = time.time_ns()
             try:
                 self.results.append(self.item_processor(item))
             except Exception as e:
-                duration = self._get_duration(start)
-                print(f'Exception {e} during iteration {idx + 1}/{total} {duration}ms')
+                item_duration = self._get_duration(item_start)
+                all_duration = self._get_duration(all_start)
+                print(f'Exception {e} during iteration {idx + 1}/{total} {item_duration}/{all_duration}ms')
                 if self.exception_strategy == ExceptionStrategy.INTERRUPT:
                     return self.results
-            duration = self._get_duration(start)
-            print(f'Processed {idx + 1}/{total} in {duration}ms')
+            item_duration = self._get_duration(item_start)
+            all_duration = self._get_duration(all_start)
+            print(f'Processed {idx + 1}/{total} in {item_duration}/{all_duration}ms')
         return self.results
 
     def _get_duration(self, start):
