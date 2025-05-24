@@ -10,8 +10,7 @@ def exclude_projects(projects, excluded):
 
     filtered_projects = []
     for project in projects:
-        is_excluded = _exclude(excluded, project)
-        if not is_excluded:
+        if not _match(excluded, project):
             filtered_projects.append(project)
     return filtered_projects
 
@@ -22,23 +21,14 @@ def include_projects(projects, included):
 
     filtered_projects = []
     for project in projects:
-        is_included = _include(included, project)
-        if is_included:
+        if _match(included, project):
             filtered_projects.append(project)
     return filtered_projects
 
 
-def _include(included, project):
-    value = True
-    for key in included:
-        for item in included[key]:
-            value = value and item in str(project[key])
-    return value
-
-
-def _exclude(excluded, project):
-    value = False
-    for key in excluded:
-        for item in excluded[key]:
-            value = value or item in str(project[key])
-    return value
+def _match(conditions, project):
+    include = []
+    for key in conditions:
+        for item in conditions[key]:
+            include.append(item in str(project[key]))
+    return any(include)

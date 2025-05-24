@@ -8,10 +8,12 @@ class ProjectFilterTestCase(unittest.TestCase):
     def test_include_project(self):
         projects = include_projects([
             {'archived': False, 'name': 'com-module'},
+            {'archived': False, 'name': 'com-component'},
             {'archived': True, 'name': 'com-archived'}
-        ], {"name": ["com-module"]})
+        ], {"name": ["com-module", "com-component"]})
 
-        self.assertEqual(projects, [{'archived': False, 'name': 'com-module'}])
+        self.assertEqual(projects, [{'archived': False, 'name': 'com-module'},
+                                    {'archived': False, 'name': 'com-component'}])
 
     def test_exclude_project(self):
         projects = exclude_projects([

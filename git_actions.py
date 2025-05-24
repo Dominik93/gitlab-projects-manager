@@ -50,7 +50,7 @@ if __name__ == "__main__":
     project = configuration['project']
     excluded = project['excluded']
     included = project['included']
-    projects = create_store(Storage.PICKLE).load({}, project['group_id'])
+    projects = create_store(Storage.JSON).load({}, project['group_id'])
     projects = filter_projects(projects, excluded, included)
     CountableProcessor(lambda x: _clone(configuration, x), strategy=ExceptionStrategy.PASS).run(projects)
     CountableProcessor(lambda x: _pull(configuration, x), strategy=ExceptionStrategy.PASS).run(projects)

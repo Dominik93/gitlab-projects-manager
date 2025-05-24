@@ -102,7 +102,7 @@ if __name__ == "__main__":
     project = configuration['project']
     excluded = project['excluded']
     included = project['included']
-    projects = create_store(Storage.PICKLE).load({}, project['group_id'])
+    projects = create_store(Storage.JSON).load({}, project['group_id'])
     projects = filter_projects(projects, excluded, included)
     projects = list(map(lambda x: f"{directory}/{x['namespace']}/{x['name']}", projects))
     results = search(projects, SearchConfiguration(text_predicate(""), regexp_predicate(""), False))
