@@ -12,56 +12,47 @@ from configuration_reader import read_configuration
 EXCLUDED = ['.git']
 
 
-class SearchConfiguration:
+class Predicate:
 
-    def __init__(self, text: str = None, regexp: str = None, show_content: bool = None, file_extension: str = None):
+    def __init__(self, text: str = None, regexp: str = None):
         self.text = text
         self.regexp = regexp
+
+    def predicate(self, content: str) -> bool | None | Exception:
+        if self.text is not None:
+            return self.text in content
+        if self.regexp is not None:
+            return re.search(self.regexp, content)
+        raise Exception("Text and regexp are None")
+
+
+class SearchConfiguration:
+
+    def __init__(self, text_predicate: Predicate = None, file_predicate: Predicate = None, show_content: bool = None):
+        self.text_predicate = text_predicate
+        self.file_predicate = file_predicate
         self.show_content = show_content
-        self.file_extension = file_extension
 
 
-def _find_line(text: str, regexp: str, content: str):
-    for line in content.split("\n"):
-        if _hit(text, regexp, line):
-            return line.strip()
-    raise Exception(f"Line with text {text} not found in content.")
+class Hit:
 
+    def __init__(self, config: SearchConfiguration, content: str):
+        self.config = config
+        self.content = content
 
-def _hit(text: str, regexp: str, content: str) -> bool | None | Exception:
-    if text is not None:
-        return text in content
-    if regexp is not None:
-        return re.search(regexp, content)
-    return Exception("Text and regexp are None")
+    def get_hit(self, identifier) -> Optional:
+        if self.config.text_predicate.predicate(self.content):
+            content = None
+            if self.config.show_content:
+                content = self._find_line(self.config.text_predicate)
+            return of({"identifier": identifier, "content": content})
+        return empty()
 
-
-def _search_in_project(project_directory: str, config: SearchConfiguration) -> list:
-    hits = []
-    for (dirpath, dirnames, filenames) in os.walk(project_directory):
-        dirnames[:] = _filter_directories(dirnames)
-        for file in _filter_files(filenames, config):
-            path = dirpath + '/' + file
-            file_content = _read(path)
-            _get_hit(config, path, file_content).if_present(lambda x: hits.append(x))
-    return hits
-
-
-def _get_hit(config, path, file_content) -> Optional:
-    if _hit(config.text, config.regexp, file_content):
-        content = None
-        if config.show_content:
-            content = _find_line(config.text, config.regexp, file_content)
-        return of({"file": path, "content": content})
-    return empty()
-
-
-def _filter_files(filenames, config):
-    return list(filter(lambda x: config.file_extension is None or config.file_extension in x, filenames))
-
-
-def _filter_directories(dirnames):
-    return list(filter(lambda x: x not in EXCLUDED, dirnames))
+    def _find_line(self, predicate: Predicate):
+        for line in self.content.split("\n"):
+            if predicate.predicate(line):
+                return line.strip()
+        raise Exception(f"Line with text {predicate} not found in content.")
 
 
 @log(level=Level.DEBUG, start_message="Search {args}", end_message=None)
@@ -70,6 +61,25 @@ def _read(path):
     file_content = f.read()
     f.close()
     return file_content
+
+
+def _search_in_project(project_directory: str, config: SearchConfiguration) -> list:
+    hits = []
+    for (dirpath, dirnames, filenames) in os.walk(project_directory):
+        dirnames[:] = _filter_directories(dirnames)
+        for file in _filter_files(config, filenames):
+            path = dirpath + '/' + file
+            Hit(config, _read(path)).get_hit(path).if_present(lambda x: hits.append(x))
+    return hits
+
+
+def _filter_files(config, filenames):
+    predicate = config.file_predicate
+    return list(filter(lambda x: predicate is None or predicate.predicate(x), filenames))
+
+
+def _filter_directories(dirnames):
+    return list(filter(lambda x: x not in EXCLUDED, dirnames))
 
 
 def _apply_filter(projects):
@@ -88,6 +98,6 @@ if __name__ == "__main__":
     projects = create_store(Storage.PICKLE).load({}, configuration['project']['group_id'])
     projects = _apply_filter(projects)
     projects = list(map(lambda x: f"{directory}/{x['namespace']}/{x['name']}", projects))
-    results = search(projects, SearchConfiguration("", "", False, ""))
+    results = search(projects, SearchConfiguration(Predicate("", ""), Predicate("", ""), False))
     print(*results, sep='\n')
     write("search.csv", results)
