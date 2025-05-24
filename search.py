@@ -3,6 +3,7 @@ import re
 from functools import reduce
 
 from commons.countable_processor import CountableProcessor
+from commons.csv_writer import write
 from commons.logger import log, Level
 from commons.store import create_store, Storage
 from configuration_reader import read_configuration
@@ -75,3 +76,4 @@ if __name__ == "__main__":
     projects = list(map(lambda x: f"{directory}/{x['namespace']}/{x['name']}", projects))
     results = search(projects, SearchConfiguration("", "", False, ""))
     print(*results, sep='\n')
+    write("search.csv", results)
