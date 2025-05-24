@@ -21,7 +21,7 @@ def process(providers: list[str], pages: list[dict]) -> list[dict]:
 
 if __name__ == "__main__":
     configuration = read_configuration()
-    accessor = GitlabAccessor(configuration['git']['gitlab_url'], configuration['git']['access_token'])
+    accessor = GitlabAccessor(configuration['git']['url'], configuration['git']['access_token'])
     projects_pages = accessor.get_all_projects(configuration['project']['group_id'])
     projects = create_store(Storage.PICKLE).load(lambda: process(configuration['providers'], projects_pages),
                                                  configuration['project']['group_id'])

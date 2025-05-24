@@ -5,7 +5,11 @@
     "default_branch": "master"
   },
   "project": {
-    "group_id": "123"
+    "group_id": "123",
+    "excluded": {
+      "archived": ["False"],
+      "namespace": ["company/components"]
+    }
   },
   "providers": ["name", "archived", "namespace", "url", "ssh"],
   "management": {

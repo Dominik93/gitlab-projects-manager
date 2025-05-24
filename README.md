@@ -13,7 +13,11 @@ providers you want to use and other specific configuration.
     "default_branch": "master"
   },
   "project": {
-    "group_id": "123"
+    "group_id": "123",
+    "excluded": {
+      "archived": ["False"],
+      "namespace": ["company/components"]
+    }
   },
   "providers": ["name", "archived", "namespace", "url", "ssh"],
   "management": {
@@ -48,9 +52,18 @@ config.json
 
 ```json
 {
-  "gitlab_url": "https://gitlab.com",
-  "access_token": "__authtoken__",
-  "group_id": "1000",
+  "git": {
+    "url": "https://gitlab",
+    "access_token": "__authtoken__",
+    "default_branch": "master"
+  },
+  "project": {
+    "group_id": "1000",
+    "excluded": {
+      "archived": ["False"],
+      "namespace": []
+    }
+  },
   "providers": [
     "name",
     "archived",
