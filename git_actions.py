@@ -1,11 +1,11 @@
 import os
 
+from commons.configuration_reader import read_configuration
 from commons.countable_processor import CountableProcessor, ExceptionStrategy
 from commons.csv_writer import write
 from commons.logger import log, Level
 from commons.store import create_store, Storage
-from commons.configuration_reader import read_configuration
-from exclude_filter import filter_not_excluded_projects
+from project_filter import filter_projects
 
 
 @log(Level.INFO, start_message="Execute {args}", end_message="Command executed {result} in {duration}ms")
@@ -47,10 +47,12 @@ def _pull(config, project):
 
 if __name__ == "__main__":
     configuration = read_configuration("config")
-    excluded = configuration['project']['excluded']
-    projects = create_store(Storage.PICKLE).load({}, configuration['project']['group_id'])
-    projects = filter_not_excluded_projects(excluded, projects)
+    project = configuration['project']
+    excluded = project['excluded']
+    included = project['included']
+    projects = create_store(Storage.PICKLE).load({}, project['group_id'])
+    projects = filter_projects(projects, excluded, included)
     CountableProcessor(lambda x: _clone(configuration, x), strategy=ExceptionStrategy.PASS).run(projects)
     CountableProcessor(lambda x: _pull(configuration, x), strategy=ExceptionStrategy.PASS).run(projects)
     status = CountableProcessor(lambda x: _status(configuration, x), strategy=ExceptionStrategy.PASS).run(projects)
-    write("status.csv", status)
+    write("status-{timestamp}.csv", status)

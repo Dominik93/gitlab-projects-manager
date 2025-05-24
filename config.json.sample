@@ -7,8 +7,12 @@
   "project": {
     "group_id": "123",
     "excluded": {
-      "archived": ["False"],
+      "archived": ["True"],
       "namespace": ["company/components"]
+    }
+    "included": {
+      "archived": ["False"],
+      "namespace": ["company/modules"]
     }
   },
   "providers": ["name", "archived", "namespace", "url", "ssh"],

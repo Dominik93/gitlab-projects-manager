@@ -36,7 +36,7 @@ class GitlabAccessor:
     def _get_full_url(self, url: str):
         return self.base_url + url
 
-    @log(Level.INFO)
+    @log(Level.DEBUG, end_message=None)
     def _execute_request(self, url):
         req = Request(url)
         req.add_header('PRIVATE-TOKEN', self.token)

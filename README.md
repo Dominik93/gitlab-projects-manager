@@ -15,6 +15,10 @@ providers you want to use and other specific configuration.
   "project": {
     "group_id": "123",
     "excluded": {
+      "archived": ["True"],
+      "namespace": ["company/components"]
+    },
+    "included": {
       "archived": ["False"],
       "namespace": ["company/components"]
     }

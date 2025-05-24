@@ -8,9 +8,17 @@ from commons.csv_writer import write
 from commons.logger import log, Level
 from commons.optional import Optional, of, empty
 from commons.store import create_store, Storage
-from exclude_filter import filter_not_excluded_projects
+from project_filter import filter_projects
 
 EXCLUDED = ['.git']
+
+
+def text_predicate(text):
+    return Predicate(text, None)
+
+
+def regexp_predicate(regexp):
+    return Predicate(None, regexp)
 
 
 class Predicate:
@@ -83,11 +91,6 @@ def _filter_directories(dirnames):
     return list(filter(lambda x: x not in EXCLUDED, dirnames))
 
 
-def _apply_filter(projects):
-    filtered_projects = list(filter(lambda x: x, projects))
-    return filtered_projects
-
-
 def search(paths: list, config: SearchConfiguration):
     search_results = CountableProcessor(lambda x: _search_in_project(x, config)).run(paths)
     return reduce(list.__add__, search_results)
@@ -98,10 +101,10 @@ if __name__ == "__main__":
     directory = configuration['management']['directory']
     project = configuration['project']
     excluded = project['excluded']
+    included = project['included']
     projects = create_store(Storage.PICKLE).load({}, project['group_id'])
-    projects = filter_not_excluded_projects(excluded, projects)
-    projects = _apply_filter(projects)
+    projects = filter_projects(projects, excluded, included)
     projects = list(map(lambda x: f"{directory}/{x['namespace']}/{x['name']}", projects))
-    results = search(projects, SearchConfiguration(Predicate("", ""), Predicate("", ""), False))
+    results = search(projects, SearchConfiguration(text_predicate(""), regexp_predicate(""), False))
     print(*results, sep='\n')
-    write("search.csv", results)
+    write("search-{timestamp}.csv", results)
