@@ -107,14 +107,15 @@ def command_line_parser():
     parser.add_argument("--search-regex", help='Regexp to search')
     parser.add_argument("--file-text", help='File text to search')
     parser.add_argument("--file-regex", help='File regex to search')
+    parser.add_argument('--show-content', help='Show content of find line', action=argparse.BooleanOptionalAction)
     parser.add_argument("--search-file", help='For action search, specify output file name',
                         default="search-{timestamp}.csv")
     args = parser.parse_args()
-    return args.action, args.project, args.search_text, args.search_regex, args.file_text, args.file_regex, args.search_file
+    return args.action, args.project, args.search_text, args.search_regex, args.file_text, args.file_regex, args.show_content, args.search_file
 
 
 if __name__ == "__main__":
-    action, project_name, search_text, search_regex, file_text, file_regex, search_file = command_line_parser()
+    action, project_name, search_text, search_regex, file_text, file_regex, show_content, search_file = command_line_parser()
     config = read_configuration("config")
     directory = config.get_value("management.directory")
     excluded = config.get_value("project.excluded")
@@ -127,6 +128,6 @@ if __name__ == "__main__":
     if action == 'search':
         search_predicate = Predicate(search_text, search_regex)
         file_predicate = Predicate(file_text, file_regex)
-        search_configuration = SearchConfiguration(search_predicate, file_predicate, False)
+        search_configuration = SearchConfiguration(search_predicate, file_predicate, show_content)
         results = search(projects, search_configuration)
         write(search_file, results)
