@@ -97,12 +97,11 @@ def search(paths: list, config: SearchConfiguration):
 
 
 if __name__ == "__main__":
-    configuration = read_configuration("config")
-    directory = configuration['management']['directory']
-    project = configuration['project']
-    excluded = project['excluded']
-    included = project['included']
-    projects = create_store(Storage.JSON).load({}, project['group_id'])
+    config = read_configuration("config")
+    directory = config.get_value("management.directory")
+    excluded = config.get_value("project.excluded")
+    included = config.get_value("project.included")
+    projects = create_store(Storage.JSON).load({}, config.get_value("project_id"))
     projects = filter_projects(projects, excluded, included)
     projects = list(map(lambda x: f"{directory}/{x['namespace']}/{x['name']}", projects))
     results = search(projects, SearchConfiguration(text_predicate(""), regexp_predicate(""), False))

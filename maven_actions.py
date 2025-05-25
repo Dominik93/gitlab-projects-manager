@@ -21,11 +21,10 @@ def bump_dependency(config, dependency: str, version: str, project: dict):
 
 
 if __name__ == "__main__":
-    configuration = read_configuration("config")
-    project = configuration['project']
-    excluded = project['excluded']
-    included = project['included']
-    projects = create_store(Storage.JSON).load({}, project['group_id'])
+    config = read_configuration("config")
+    excluded = config.get_value("project.excluded")
+    included = config.get_value("project.included")
+    projects = create_store(Storage.JSON).load({}, config.get_value("project_id"))
     projects = filter_projects(projects, excluded, included)
-    CountableProcessor(lambda x: bump_dependency(configuration, "", "", x), strategy=ExceptionStrategy.PASS).run(
+    CountableProcessor(lambda x: bump_dependency(config, "", "", x), strategy=ExceptionStrategy.PASS).run(
         projects)
