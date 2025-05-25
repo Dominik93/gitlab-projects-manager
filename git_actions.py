@@ -54,8 +54,8 @@ def pull(directory: str, project: dict):
 
 
 def command_line_parser():
-    parser = argparse.ArgumentParser(description='Gitlab project manager')
-    parser.add_argument("--action", choices=['clone', 'pull', 'push', 'create_branch', 'status'],
+    parser = argparse.ArgumentParser(description='Gitlab project manager - git')
+    parser.add_argument("--action", choices=['clone', 'pull', 'push', 'create-branch', 'status'],
                         help='Action to perform', required=True)
     parser.add_argument("--project-name", help='Name of project')
     parser.add_argument("--branch", help='Name of branch to create')
@@ -82,7 +82,7 @@ if __name__ == "__main__":
         CountableProcessor(lambda x: pull(config_directory, x), strategy=strategy).run(projects)
     if action == 'push':
         CountableProcessor(lambda x: pull(config_directory, x), strategy=strategy).run(projects)
-    if action == 'create_branch':
+    if action == 'create-branch':
         CountableProcessor(lambda x: create_branch(config_directory, branch, x), strategy=strategy).run(projects)
     if action == 'status':
         projects_statues = CountableProcessor(lambda x: status(config_directory, x), strategy=strategy).run(projects)

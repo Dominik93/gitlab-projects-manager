@@ -1,3 +1,4 @@
+import argparse
 import os
 import re
 from functools import reduce
@@ -84,7 +85,7 @@ def _search_in_project(project_directory: str, config: SearchConfiguration) -> l
 
 def _filter_files(config, filenames):
     predicate = config.file_predicate
-    return list(filter(lambda x: predicate is None or predicate.predicate(x), filenames))
+    return list(filter(lambda x: predicate is None or predicate.serach_predicate(x), filenames))
 
 
 def _filter_directories(dirnames):
@@ -96,14 +97,34 @@ def search(paths: list, config: SearchConfiguration):
     return reduce(list.__add__, search_results)
 
 
+def command_line_parser():
+    parser = argparse.ArgumentParser(description='Gitlab project manager - search')
+    parser.add_argument("--action", help='Action to perform', choices=['search'], required=True)
+    parser.add_argument("--project", help='Name of project')
+    parser.add_argument("--search-text", help='Text to search')
+    parser.add_argument("--search-regex", help='Regexp to search')
+    parser.add_argument("--file-text", help='File text to search')
+    parser.add_argument("--file-regex", help='File regex to search')
+    parser.add_argument("--search-file", help='For action search, specify output file name',
+                        default="search-{timestamp}.csv")
+    args = parser.parse_args()
+    return args.action, args.project, args.search_text, args.search_regex, args.file_text, args.file_regex, args.search_file
+
+
 if __name__ == "__main__":
+    action, project_name, search_text, search_regex, file_text, file_regex, search_file = command_line_parser()
     config = read_configuration("config")
     directory = config.get_value("management.directory")
     excluded = config.get_value("project.excluded")
     included = config.get_value("project.included")
     projects = create_store(Storage.JSON).load({}, config.get_value("project_id"))
     projects = filter_projects(projects, excluded, included)
+    if project_name is not None:
+        projects = list(filter(lambda x: x["name"] == project_name, projects))
     projects = list(map(lambda x: f"{directory}/{x['namespace']}/{x['name']}", projects))
-    results = search(projects, SearchConfiguration(text_predicate(""), regexp_predicate(""), False))
-    print(*results, sep='\n')
-    write("search-{timestamp}.csv", results)
+    if action == 'search':
+        search_predicate = Predicate(search_text, search_regex)
+        file_predicate = Predicate(file_text, file_regex)
+        search_configuration = SearchConfiguration(search_predicate, file_predicate, False)
+        results = search(projects, search_configuration)
+        write(search_file, results)

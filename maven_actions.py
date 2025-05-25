@@ -22,8 +22,8 @@ def bump_dependency(config, dependency: str, version: str, project: dict):
 
 
 def command_line_parser():
-    parser = argparse.ArgumentParser(description='Gitlab project manager')
-    parser.add_argument("--action", help='Action to perform', required=True)
+    parser = argparse.ArgumentParser(description='Gitlab project manager - maven')
+    parser.add_argument("--action", help='Action to perform', choices=['bump-dependency'], required=True)
     parser.add_argument("--project", help='Name of project')
     parser.add_argument("--dependency-name", help='Dependency name')
     parser.add_argument("--dependency-version", help='Dependency version')
