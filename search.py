@@ -28,7 +28,7 @@ class Predicate:
         self.text = text
         self.regexp = regexp
 
-    def predicate(self, content: str) -> bool | None | Exception:
+    def test(self, content: str) -> bool | None | Exception:
         if self.text is not None:
             return self.text in content
         if self.regexp is not None:
@@ -51,7 +51,7 @@ class Hit:
         self.content = content
 
     def get_hit(self, identifier) -> Optional:
-        if self.config.text_predicate.predicate(self.content):
+        if self.config.text_predicate.test(self.content):
             content = None
             if self.config.show_content:
                 content = self._find_line(self.config.text_predicate)
@@ -60,7 +60,7 @@ class Hit:
 
     def _find_line(self, predicate: Predicate):
         for line in self.content.split("\n"):
-            if predicate.predicate(line):
+            if predicate.test(line):
                 return line.strip()
         raise Exception(f"Line with text {predicate} not found in content.")
 
@@ -83,9 +83,11 @@ def _search_in_project(project_directory: str, config: SearchConfiguration) -> l
     return hits
 
 
-def _filter_files(config, filenames):
+def _filter_files(config: SearchConfiguration, filenames):
     predicate = config.file_predicate
-    return list(filter(lambda x: predicate is None or predicate.serach_predicate(x), filenames))
+    if predicate is None:
+        return filenames
+    return list(filter(lambda x: predicate.test(x), filenames))
 
 
 def _filter_directories(dirnames):
@@ -94,7 +96,7 @@ def _filter_directories(dirnames):
 
 def search(paths: list, config: SearchConfiguration):
     search_results = CountableProcessor(lambda x: _search_in_project(x, config)).run(paths)
-    return reduce(list.__add__, search_results)
+    return reduce(list.__add__, search_results, [])
 
 
 def command_line_parser():
@@ -117,7 +119,7 @@ if __name__ == "__main__":
     directory = config.get_value("management.directory")
     excluded = config.get_value("project.excluded")
     included = config.get_value("project.included")
-    projects = create_store(Storage.JSON).load({}, config.get_value("project_id"))
+    projects = create_store(Storage.JSON).load(lambda: {}, config.get_value("project_id"))
     projects = filter_projects(projects, excluded, included)
     if project_name is not None:
         projects = list(filter(lambda x: x["name"] == project_name, projects))
