@@ -36,7 +36,7 @@ if __name__ == "__main__":
     config = read_configuration("config")
     excluded = config.get_value("project.excluded")
     included = config.get_value("project.included")
-    projects = create_store(Storage.JSON).load({}, config.get_value("project_id"))
+    projects = create_store(Storage.JSON).load({}, config.get_value("project.group_id"))
     projects = filter_projects(projects, excluded, included)
     if project is not None:
         projects = list(filter(lambda x: x["name"] == project, projects))

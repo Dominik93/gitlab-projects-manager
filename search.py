@@ -120,7 +120,7 @@ if __name__ == "__main__":
     directory = config.get_value("management.directory")
     excluded = config.get_value("project.excluded")
     included = config.get_value("project.included")
-    projects = create_store(Storage.JSON).load(lambda: {}, config.get_value("project_id"))
+    projects = create_store(Storage.JSON).load(lambda: {}, config.get_value("project.group_id"))
     projects = filter_projects(projects, excluded, included)
     if project_name is not None:
         projects = list(filter(lambda x: x["name"] == project_name, projects))
