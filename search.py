@@ -24,23 +24,23 @@ def regexp_predicate(regexp):
 
 class Predicate:
 
-    def __init__(self, text: str = None, regexp: str = None):
-        self.text = text
-        self.regexp = regexp
+    def __init__(self, text: list | str = None, regexp: str = None):
+        self.text = of(text).map(lambda x: text if isinstance(text, list) else [text])
+        self.regexp = of(regexp)
 
     def test(self, content: str) -> bool | None | Exception:
-        if self.text is not None:
-            return self.text in content
-        if self.regexp is not None:
-            return re.search(self.regexp, content)
+        if self.text.is_present():
+            return any(list(map(lambda x: x in content, self.text.get())))
+        if self.regexp.is_present():
+            return re.search(self.regexp.get(), content)
         raise Exception("Text and regexp are None")
 
 
 class SearchConfiguration:
 
     def __init__(self, text_predicate: Predicate = None, file_predicate: Predicate = None, show_content: bool = None):
-        self.text_predicate = text_predicate
-        self.file_predicate = file_predicate
+        self.text_predicate = of(text_predicate)
+        self.file_predicate = of(file_predicate)
         self.show_content = show_content
 
 
@@ -51,10 +51,11 @@ class Hit:
         self.content = content
 
     def get_hit(self, identifier) -> Optional:
-        if self.config.text_predicate.test(self.content):
+        predicate = self.config.text_predicate.get()
+        if predicate.test(self.content):
             content = None
             if self.config.show_content:
-                content = self._find_line(self.config.text_predicate)
+                content = self._find_line(predicate)
             return of({"identifier": identifier, "content": content})
         return empty()
 
@@ -84,10 +85,7 @@ def _search_in_project(project_directory: str, config: SearchConfiguration) -> l
 
 
 def _filter_files(config: SearchConfiguration, filenames):
-    predicate = config.file_predicate
-    if predicate is None:
-        return filenames
-    return list(filter(lambda x: predicate.test(x), filenames))
+    return config.file_predicate.map(lambda p: list(filter(lambda f: p.test(f), filenames))).or_get(filenames)
 
 
 def _filter_directories(dirnames):
@@ -105,13 +103,13 @@ def command_line_parser():
     parser.add_argument("--project", help='Name of project')
     parser.add_argument("--search-text", help='Text to search')
     parser.add_argument("--search-regex", help='Regexp to search')
-    parser.add_argument("--file-text", help='File text to search')
+    parser.add_argument("--file-text", help='Coma separated file text to search')
     parser.add_argument("--file-regex", help='File regex to search')
     parser.add_argument('--show-content', help='Show content of find line', action=argparse.BooleanOptionalAction)
     parser.add_argument("--search-file", help='For action search, specify output file name',
                         default="search-{timestamp}.csv")
     args = parser.parse_args()
-    return args.action, args.project, args.search_text, args.search_regex, args.file_text, args.file_regex, args.show_content, args.search_file
+    return args.action, args.project, args.search_text, args.search_regex, of(args.file_text), args.file_regex, args.show_content, args.search_file
 
 
 if __name__ == "__main__":
@@ -127,7 +125,7 @@ if __name__ == "__main__":
     projects = list(map(lambda x: f"{directory}/{x['namespace']}/{x['name']}", projects))
     if action == 'search':
         search_predicate = Predicate(search_text, search_regex)
-        file_predicate = Predicate(file_text, file_regex)
+        file_predicate = Predicate(file_text.map(lambda x: x.split(',')).or_get(None), file_regex)
         search_configuration = SearchConfiguration(search_predicate, file_predicate, show_content)
         results = search(projects, search_configuration)
         write(search_file, results)
