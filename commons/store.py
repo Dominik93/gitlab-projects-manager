@@ -30,6 +30,11 @@ class Store:
         self.saver(obj, storage + "." + self.extension)
         return obj
 
+    def get(self, storage):
+        if os.path.isfile(storage + "." + self.extension):
+            return self.loader(storage + "." + self.extension)
+        raise Exception(f"Store {storage} not exist")
+
     def store(self, obj, storage):
         self.saver(obj, storage + "." + self.extension)
 
