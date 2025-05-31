@@ -6,9 +6,6 @@ from gitlab_accessor import GitlabAccessor
 from gitlab_projects_manager import process
 
 
-# import providers, do not remove
-
-
 def command_line_parser():
     parser = argparse.ArgumentParser(description='Gitlab project manager - main')
     args = parser.parse_args()

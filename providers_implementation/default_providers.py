@@ -11,6 +11,11 @@ def ssh_provider(project):
     return project['ssh_url_to_repo']
 
 
+@add_provider('id')
+def ssh_provider(project):
+    return project['id']
+
+
 @add_provider('archived')
 def archived_provider(project):
     return project['archived']

@@ -1,16 +1,20 @@
 import argparse
+
 from commons.configuration_reader import read_configuration
 from commons.countable_processor import CountableProcessor, ExceptionStrategy
 from commons.csv_writer import write
+from commons.logger import set_root_level, Level
 from commons.store import create_store, Storage
 from git_actions import clone, pull, create_branch, push, status
 from project_filter import filter_projects
+
+set_root_level(Level.DEBUG)
 
 
 def command_line_parser():
     parser = argparse.ArgumentParser(description='Gitlab project manager - git')
     parser.add_argument("--action", choices=['clone', 'pull', 'push', 'create-branch', 'status'],
-                        help='Action to perform', required=True)
+                        help='Action to perform', default='pull')
     parser.add_argument("--project-name", help='Name of project')
     parser.add_argument("--branch", help='Name of branch to create')
     parser.add_argument("--status-file", help='For action status, specify output file name',
