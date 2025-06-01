@@ -117,7 +117,7 @@ async def post_status(group_id, project_filter: Filter):
     CountableProcessor(lambda x: status(config_directory, x), strategy=ExceptionStrategy.PASS).run(projects)
 
 
-@app.post("/namespace/{group_id}/projects/search", tags=['search'], operation_id="search")
+@app.post("/namespace/{group_id}/projects/search", tags=['projects'], operation_id="search")
 async def post_search(group_id, request: SearchRequest):
     logger.info("post_search", f"POST search {group_id} {request}")
     config = read_configuration("config")
