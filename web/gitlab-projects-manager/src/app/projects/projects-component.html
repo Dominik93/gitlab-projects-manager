@@ -1,0 +1,137 @@
+@if (error) {
+<div class="alert alert-danger" role="alert">
+  Error while fetch resources. Reload page.
+</div>
+}
+<div class="card">
+  <div class="card-body">
+    <div class="row">
+      <div class="col">
+        <input type="text" [(ngModel)]="groupId" class="form-control" id="groupIdInput" placeholder="Select group id">
+      </div>
+      <div class="col items">
+        <button type="button" class="btn btn-dark" (click)="onLoad()">Load group</button>
+        <button type="button" class="btn btn-dark" (click)="onReload()">Reload group</button>
+        <button type="button" class="btn btn-dark" (click)="onCloneAll()">Clone</button>
+        <button type="button" class="btn btn-dark" (click)="onPullAll()">Pull</button>
+        <button type="button" class="btn btn-dark" (click)="onStatusAll()">Status</button>
+        <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#searchModal">Search</button>
+        @if (searchResult) {
+        <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#searchResultsModal">Search results</button>
+        }
+         @if (loading) {
+        <div class="spinner-border float-right" role="status">
+          <span class="sr-only"></span>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-body">
+    <div class="row">
+      @for (header of headers; track header) {
+      <div class="col">
+        <input type="text" id="filterInput" class="form-control" (change)="onFilterChange(header, $event)"
+          [placeholder]="header">
+      </div>
+      }
+    </div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="row">#</th>
+          @for (header of headers; track header) {
+          <th scope="col">{{header}}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (project of filteredProjects; track project['id']; let idx = $index) {
+        <tr>
+          <th scope="row">{{idx}}</th>
+          @for (characteristic of project.characteristics; track characteristic.name){
+          <td>{{characteristic.value}}</td>
+          }
+          <td><button type="button" class="btn btn-dark" (click)="onPull(project.id)">Pull</button></td>
+          <td><button type="button" class="btn btn-dark" (click)="onClone(project.id)">Clone</button></td>
+          <td><button type="button" class="btn btn-dark">Status</button></td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Search</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="searchTextInput">Search text</label>
+          <input type="text" [(ngModel)]="searchInput.text" class="form-control" id="searchTextInput"
+            placeholder="Enter text">
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" [(ngModel)]="searchInput.textRegexp" type="checkbox" id="textRegexp">
+          <label class="form-check-label" for="textRegexp"> Regexp </label>
+        </div>
+        <div class="form-group">
+          <label for="searchFileInput">Search file</label>
+          <input type="text" [(ngModel)]="searchInput.file" class="form-control" id="searchFileInput"
+            placeholder="Enter coma separeted files">
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" [(ngModel)]="searchInput.fileRegexp" type="checkbox" id="fileRegexp">
+          <label class="form-check-label" for="fileRegexp"> Regexp </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" [(ngModel)]="searchInput.showContent" type="checkbox" id="showContent">
+          <label class="form-check-label" for="showContent"> Show content </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-dark" data-bs-dismiss="modal" (click)="onSearch()">Search</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="searchResultsModal" tabindex="-1" role="dialog" aria-labelledby="searchResultsModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Search results</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="row">Identifier</th>
+              <th scope="row">Content</th>
+            </tr>
+          </thead>
+        <tbody>
+          @for (hit of searchResult; track hit.identifier; let idx = $index) {
+          <tr>
+            <td>{{hit.identifier}}</td>
+            <td>{{hit.content}}</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+      </div>
+  </div>
+</div>

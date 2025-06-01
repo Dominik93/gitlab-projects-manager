@@ -1,6 +1,6 @@
 import unittest
 
-from gitlab_projects_manager import process
+from gitlab_actions import process
 
 component = {
     '_links': {

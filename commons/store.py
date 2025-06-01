@@ -23,6 +23,10 @@ class Store:
         self.saver = saver
         self.extension = extension
 
+    def delete(self, storage):
+        if os.path.isfile(storage + "." + self.extension):
+            os.remove(storage + "." + self.extension)
+
     def load(self, supplier, storage):
         if os.path.isfile(storage + "." + self.extension):
             return self.loader(storage + "." + self.extension)
