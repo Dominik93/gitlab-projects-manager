@@ -174,9 +174,8 @@ cython_debug/
 .pypirc
 
 .idea
-/config.json
 /providers_implementation/*.py
 /providers_implementation/tests
 !/providers_implementation/default_providers.py
-*.json
-*.csv
+/*.json
+/*.csv
