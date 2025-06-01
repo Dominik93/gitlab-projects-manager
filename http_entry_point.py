@@ -70,7 +70,7 @@ async def patch_reload_group(group_id):
     store.load(lambda: process(group_id), group_id)
 
 
-@app.get("/namespace/{group_id}/projects", tags=['project'], operation_id="getProjects")
+@app.get("/namespace/{group_id}/projects", tags=['projects'], operation_id="getProjects")
 async def get_projects(group_id):
     logger.info("get_projects", f"GET projects {group_id}")
     store = create_store(Storage.JSON)
