@@ -134,4 +134,4 @@ async def post_search(group_id, request: SearchRequest):
 
 
 def _get_id_filter(ids):
-    return {} if len(projects_ids) == 0 else {"id": projects_ids}
+    return {} if len(ids) == 0 else {"id": ids}
