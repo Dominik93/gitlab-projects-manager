@@ -60,10 +60,7 @@ if __name__ == "__main__":
     strategy = ExceptionStrategy.PASS
     store = create_store(Storage.JSON)
     if args.action == 'load':
-        accessor = GitlabAccessor(config.get_value("git.url"), config.get_value("git.access_token"))
-        projects_pages = accessor.get_all_projects(group_id)
-        providers = config.get_value("providers")
-        store.load(lambda: process(providers, projects_pages), group_id)
+        store.load(lambda: process(group_id), group_id)
 
     projects = get_projects(store, group_id, args.project_name)
     if args.action == 'bump-dependency':

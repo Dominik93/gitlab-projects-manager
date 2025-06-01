@@ -1,5 +1,8 @@
+from commons.configuration_reader import read_configuration
 from commons.countable_processor import CountableProcessor
+from gitlab_accessor import GitlabAccessor
 from providers.providers_registry import providers_registry
+
 
 # import providers, do not remove
 from providers_implementation import *
@@ -12,5 +15,13 @@ def _process_project(providers: list[str], gitlab_project: dict) -> dict:
     return project
 
 
-def process(providers: list[str], pages: list[dict]) -> list[dict]:
+def process_pages(providers: list[str], pages: list[dict]) -> list[dict]:
+    return CountableProcessor(lambda x: _process_project(providers, x)).run(pages)
+
+
+def process(group_id) -> list[dict]:
+    configuration = read_configuration("config")
+    accessor = GitlabAccessor(configuration.get_value("git.url"), configuration.get_value("git.access_token"))
+    pages = accessor.get_all_projects(group_id)
+    providers = configuration.get_value("providers")
     return CountableProcessor(lambda x: _process_project(providers, x)).run(pages)

@@ -1,6 +1,6 @@
 import unittest
 
-from gitlab_actions import process
+from gitlab_actions import process_pages
 
 component = {
     '_links': {
@@ -292,7 +292,7 @@ module = {
 class ProcessTestCase(unittest.TestCase):
     def test_process(self):
         providers = ['id', 'name', 'archived', 'ssh', 'url', 'namespace']
-        projects = process(providers, [module, component])
+        projects = process_pages(providers, [module, component])
 
         module_project = {'id': 22789,
                           'archived': False,

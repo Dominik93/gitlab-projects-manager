@@ -10,7 +10,6 @@ from commons.logger import get_logger
 from commons.optional import of
 from commons.store import create_store, Storage
 from git_actions import pull, clone, status
-from gitlab_accessor import GitlabAccessor
 from gitlab_actions import process
 from project_filter import filter_projects
 from search import Predicate, SearchConfiguration, search
@@ -60,23 +59,15 @@ def get_app_angular():
 @app.post("/namespace/{group_id}", tags=['group'], operation_id="loadGroup")
 async def post_load_group(group_id):
     logger.info("post_load_group", f"POST {group_id}")
-    configuration = read_configuration("config")
-    accessor = GitlabAccessor(configuration.get_value("git.url"), configuration.get_value("git.access_token"))
-    projects_pages = accessor.get_all_projects(group_id)
-    providers = configuration.get_value("providers")
-    create_store(Storage.JSON).load(lambda: process(providers, projects_pages), group_id)
+    create_store(Storage.JSON).load(lambda: process(group_id), group_id)
 
 
 @app.patch("/namespace/{group_id}", tags=['group'], operation_id="reloadGroup")
 async def patch_reload_group(group_id):
     logger.info("patch_reload_group", f"PATCH {group_id}")
-    configuration = read_configuration("config")
-    accessor = GitlabAccessor(configuration.get_value("git.url"), configuration.get_value("git.access_token"))
-    projects_pages = accessor.get_all_projects(group_id)
-    providers = configuration.get_value("providers")
     store = create_store(Storage.JSON)
     store.delete(group_id)
-    store.load(lambda: process(providers, projects_pages), group_id)
+    store.load(lambda: process(group_id), group_id)
 
 
 @app.get("/namespace/{group_id}/projects", tags=['project'], operation_id="getProjects")
@@ -87,40 +78,40 @@ async def get_projects(group_id):
     return projects
 
 
-@app.post("/namespace/{group_id}/projects/pull", tags=['git actions'], operation_id="pull")
+@app.post("/namespace/{group_id}/projects/pull", tags=['projects'], operation_id="pull")
 async def post_pull(group_id, project_filter: Filter):
     logger.info("post_pull", f"POST pull {group_id} {project_filter}")
     config = read_configuration("config")
     config_directory = config.get_value("management.directory")
     store = create_store(Storage.JSON)
     projects = store.get(group_id)
-    id_filter = {"id": None if len(project_filter.projects_ids) == 0 else project_filter.projects_ids}
+    id_filter = _get_id_filter(project_filter.projects_ids)
     projects = filter_projects(projects, {}, id_filter)
     logger.debug("post_pull", f"{projects}")
     CountableProcessor(lambda x: pull(config_directory, x), strategy=ExceptionStrategy.PASS).run(projects)
 
 
-@app.post("/namespace/{group_id}/projects/clone", tags=['git actions'], operation_id="clone")
+@app.post("/namespace/{group_id}/projects/clone", tags=['projects'], operation_id="clone")
 async def post_clone(group_id, project_filter: Filter):
     logger.info("post_clone", f"POST clone {group_id} {project_filter}")
     config = read_configuration("config")
     config_directory = config.get_value("management.directory")
     store = create_store(Storage.JSON)
     projects = store.get(group_id)
-    id_filter = {"id": None if len(project_filter.projects_ids) == 0 else project_filter.projects_ids}
+    id_filter = _get_id_filter(project_filter.projects_ids)
     projects = filter_projects(projects, {}, id_filter)
     logger.debug("post_clone", f"{projects}")
     CountableProcessor(lambda x: clone(config_directory, x), strategy=ExceptionStrategy.PASS).run(projects)
 
 
-@app.post("/namespace/{group_id}/projects/status", tags=['git actions'], operation_id="status")
+@app.post("/namespace/{group_id}/projects/status", tags=['projects'], operation_id="status")
 async def post_status(group_id, project_filter: Filter):
     logger.info("post_status", f"POST status {group_id} {project_filter}")
     config = read_configuration("config")
     config_directory = config.get_value("management.directory")
     store = create_store(Storage.JSON)
     projects = store.get(group_id)
-    id_filter = {"id": None if len(project_filter.projects_ids) == 0 else project_filter.projects_ids}
+    id_filter = _get_id_filter(project_filter.projects_ids)
     projects = filter_projects(projects, {}, id_filter)
     logger.debug("post_status", f"{projects}")
     CountableProcessor(lambda x: status(config_directory, x), strategy=ExceptionStrategy.PASS).run(projects)
@@ -132,7 +123,7 @@ async def post_search(group_id, request: SearchRequest):
     config = read_configuration("config")
     directory = config.get_value("management.directory")
     projects = create_store(Storage.JSON).load(lambda: {}, config.get_value("project.group_id"))
-    id_filter = {"id": None if len(request.projects_ids) == 0 else request.projects_ids}
+    id_filter = _get_id_filter(request.projects_ids)
     projects = filter_projects(projects, {}, id_filter)
     logger.debug("post_search", f"{projects}")
     projects = list(map(lambda x: f"{directory}/{x['namespace']}/{x['name']}", projects))
@@ -140,3 +131,7 @@ async def post_search(group_id, request: SearchRequest):
     file_predicate = Predicate(of(request.file_text).map(lambda x: x.split(',')).or_get(None), request.file_regex)
     search_configuration = SearchConfiguration(search_predicate, file_predicate, request.show_content)
     return search(projects, search_configuration)
+
+
+def _get_id_filter(ids):
+    return {} if len(projects_ids) == 0 else {"id": projects_ids}
