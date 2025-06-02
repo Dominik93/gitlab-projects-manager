@@ -26,7 +26,8 @@ def status(directory: str, project: dict):
     current_branch = _git(f"git -C {project_directory} branch --show-current")
     project_status = _git(f"git -C {project_directory} status")
     project['current_branch'] = current_branch
-    return {"name": project['name'], "branch": current_branch, "changes": _is_clear(project_status)}
+    project['local_changes'] = current_branch
+    return {"name": project['name'], "branch": current_branch, "local_changes": not _is_clear(project_status)}
 
 
 def create_branch(directory: str, branch: str, project: dict):

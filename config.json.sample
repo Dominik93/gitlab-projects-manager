@@ -15,7 +15,10 @@
       "namespace": ["company/modules"]
     }
   },
-  "providers": ["name", "archived", "namespace", "url", "ssh"],
+  "providers": {
+    "ui": ["name", "archived", "namespace", "url", "ssh"],
+    "loader":  ["name", "namespace", "url"]
+  },
   "management": {
     "directory": "/path"
   }

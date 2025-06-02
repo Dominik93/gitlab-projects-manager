@@ -75,7 +75,22 @@ async def get_projects(group_id):
     logger.info("get_projects", f"GET projects {group_id}")
     store = create_store(Storage.JSON)
     projects = store.get(group_id)
+    providers = _get_blocked_providers()
+    for project in projects:
+        for key in providers:
+            del project[key]
     return projects
+
+
+def _get_blocked_providers():
+    config = read_configuration("config")
+    ui_providers = config.get_value("providers.ui")
+    loader_providers = config.get_value("providers.loader")
+    blocked_providers = set()
+    for provider in loader_providers:
+        if provider not in ui_providers:
+            blocked_providers.add(provider)
+    return blocked_providers
 
 
 @app.post("/namespace/{group_id}/projects/pull", tags=['projects'], operation_id="pull")

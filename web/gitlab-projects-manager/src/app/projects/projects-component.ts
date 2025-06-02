@@ -44,7 +44,7 @@ export class ProjectsComponent implements OnInit {
   groupId = "";
 
   searchInput: SearchInput = {}
-  
+
   searchResult: SearchHit[] = []
 
   filters: { [id: string]: any } = {}
@@ -64,7 +64,7 @@ export class ProjectsComponent implements OnInit {
       let value = this.filters[key];
       this.filteredProjects = this.filteredProjects
         .filter(p => p.characteristics.filter(c => c.name == key)
-          .some(c => value === '' || c.value.includes(value)));
+          .some(c => value === '' || this.filter(c, value)));
     }
   }
 
@@ -119,7 +119,7 @@ export class ProjectsComponent implements OnInit {
   onSearch() {
     this.loading = true;
     this.projectsService.search(this.groupId, this.searchInput, this.filteredProjects.map(p => p.id))
-      .subscribe(this.action((res: any) => {this.searchResult = res}));
+      .subscribe(this.action((res: any) => { this.searchResult = res }));
   }
 
   private action(nextCallback?: Function) {
@@ -127,9 +127,7 @@ export class ProjectsComponent implements OnInit {
       next: (res: any) => {
         this.loading = false;
         this.error = false;
-        console.log('res', res, this.loading, this.error)
         if (nextCallback) {
-          console.log('trycollback', res)
           nextCallback(res);
         }
       }, error: () => {
@@ -163,5 +161,15 @@ export class ProjectsComponent implements OnInit {
       });
   }
 
+  private filter(characteristic: Characteristic, value: any): unknown {
+    const characteristicValue = characteristic.value;
+    if (typeof characteristicValue == "boolean") {
+      return characteristicValue == value
+    }
+    if (typeof characteristicValue == "string") {
+      return characteristicValue.includes(value);
+    }
+    return characteristicValue == value
+  }
 
 }
