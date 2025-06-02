@@ -1,9 +1,9 @@
 def filter_projects(projects: list[dict], excluded: dict, included: dict):
     filtered_projects = projects
     filtered_projects = filtered_projects if _should_not_filter(excluded) else (
-        _match_projects(filtered_projects, lambda project: not _match(excluded, project)))
+        _match_projects(filtered_projects, lambda project: not _match(project, excluded)))
     filtered_projects = filtered_projects if _should_not_filter(included) else (
-        _match_projects(filtered_projects, lambda project: _match(included, project)))
+        _match_projects(filtered_projects, lambda project: _match(project, included)))
     return filtered_projects
 
 
@@ -19,9 +19,9 @@ def _match_projects(projects: list[dict], condition):
     return filtered_projects
 
 
-def _match(conditions: dict, project: dict):
+def _match(project: dict, conditions: dict):
     include = []
     for key in conditions:
         for item in conditions[key]:
-            include.append(item in str(project[key]))
+            include.append(str(item) in str(project[key]))
     return any(include)

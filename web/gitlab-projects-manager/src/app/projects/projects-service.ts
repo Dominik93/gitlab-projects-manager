@@ -37,7 +37,7 @@ export class ProjectsService {
 
   status(groupId: string, ids?: string[]): Observable<any> {
     const request = { "projects_ids": ids }
-    return this.http.post(`${this.api}/namespace/${groupId}/projects/pull`, request);
+    return this.http.post(`${this.api}/namespace/${groupId}/projects/status`, request);
   }
 
   search(groupId: string, input: SearchInput, ids?: string[]): Observable<SearchHit[]> {

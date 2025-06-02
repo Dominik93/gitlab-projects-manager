@@ -179,3 +179,4 @@ cython_debug/
 !/providers_implementation/default_providers.py
 /*.json
 /*.csv
+!/logback.json

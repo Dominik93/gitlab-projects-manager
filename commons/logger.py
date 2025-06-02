@@ -22,8 +22,9 @@ __level = {}
 if os.path.isfile("logback.json"):
     with open("logback.json", 'r', encoding="utf-8") as file:
         logback = json.load(file)
-        for key in logback:
-            __level[key] = Level[logback[key]]
+        __root_level = logback['root']
+        for key in logback['loggers']:
+            __level[key] = Level[logback['loggers'][key]]
 
 
 def set_root_level(level: Level):
