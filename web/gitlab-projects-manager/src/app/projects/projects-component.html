@@ -3,22 +3,33 @@
   Error while fetch resources. Reload page.
 </div>
 }
+
 <div class="card">
   <div class="card-body">
     <div class="row">
-      <div class="col">
+      <div class="col col-2">
         <input type="text" [(ngModel)]="groupId" class="form-control" id="groupIdInput" placeholder="Select group id">
       </div>
-      <div class="col items">
-        <button type="button" class="btn btn-dark" (click)="onLoad()" [disabled]="loading">Load group</button>
-        <button type="button" class="btn btn-dark" (click)="onReload()" [disabled]="loading">Reload group</button>
-        <button type="button" class="btn btn-dark" (click)="onCloneAll()" [disabled]="loading">Clone</button>
-        <button type="button" class="btn btn-dark" (click)="onPullAll()" [disabled]="loading">Pull</button>
-        <button type="button" class="btn btn-dark" (click)="onStatusAll()" [disabled]="loading">Status</button>
-        <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#searchModal" [disabled]="loading">Search</button>
-        @if (searchResult) {
-        <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#searchResultsModal"[disabled]="loading">Search results</button>
-        }
+      <div class="col">
+        <div class="actions items">
+          <button type="button" class="btn btn-dark" (click)="onLoad()" [disabled]="loading">Load group</button>
+          <button type="button" class="btn btn-dark" (click)="onReload()"
+            [disabled]="loading|| !filteredProjects.length">Reload group</button>
+          <button type="button" class="btn btn-dark" (click)="onCloneAll()"
+            [disabled]="loading || !filteredProjects.length">Clone</button>
+          <button type="button" class="btn btn-dark" (click)="onPullAll()"
+            [disabled]="loading|| !filteredProjects.length">Pull</button>
+          <button type="button" class="btn btn-dark" (click)="onStatusAll()"
+            [disabled]="loading|| !filteredProjects.length">Status</button>
+          <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#searchModal"
+            [disabled]="loading|| !filteredProjects.length">Search</button>
+          @if (searchResult) {
+          <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#searchResultsModal"
+            [disabled]="loading || !searchResult.length">Search results</button>
+          }
+          <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#bumpDependencyModal"
+            (click)="onBumpDependencyAll()" [disabled]="loading|| !filteredProjects.length">Bump Dependency</button>
+        </div>
         @if (loading) {
         <div class="spinner-border float-right" role="status">
           <span class="sr-only"></span>
@@ -28,6 +39,7 @@
     </div>
   </div>
 </div>
+
 <div class="card">
   <div class="card-body">
     <div class="row">
@@ -58,8 +70,12 @@
           <td>
             <div class="actions items">
               <button type="button" class="btn btn-dark" (click)="onPull(project.id)" [disabled]="loading">Pull</button>
-              <button type="button" class="btn btn-dark" (click)="onClone(project.id)" [disabled]="loading">Clone</button>
-              <button type="button" class="btn btn-dark" (click)="onStatus(project.id)" [disabled]="loading">Status</button>
+              <button type="button" class="btn btn-dark" (click)="onClone(project.id)"
+                [disabled]="loading">Clone</button>
+              <button type="button" class="btn btn-dark" (click)="onStatus(project.id)"
+                [disabled]="loading">Status</button>
+              <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#bumpDependencyModal"
+                (click)="onBumpDependency(project.id)" [disabled]="loading">Bump dependency</button>
             </div>
           </td>
         </tr>
@@ -74,7 +90,7 @@
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Search</h5>
+        <h5 class="modal-title" id="searchModalLabel">Search</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body search-form">
@@ -109,7 +125,47 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-dark" data-bs-dismiss="modal" (click)="onSearch()">Search</button>
+        <button type="button" class="btn btn-dark" data-bs-dismiss="modal" (click)="onSearch()"
+          [disabled]="!searchInput.text">Search</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="bumpDependencyModal" tabindex="-1" role="dialog" aria-labelledby="bumpDependencyModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="bumpDependencyModalLabel">Bump dependency</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body search-form">
+        <div class="form-group row">
+          <div class="col-10">
+            <input type="text" [(ngModel)]="bumpDependencyInput.dependency"
+              (ngModelChange)="bumpDependencyInput.branch = $event +'_'+ bumpDependencyInput.version"
+              class="form-control" id="dependencyInput" placeholder="Dependency">
+          </div>
+        </div>
+        <div class="form-group row">
+          <div class="col-10">
+            <input type="text" [(ngModel)]="bumpDependencyInput.version"
+              (ngModelChange)="bumpDependencyInput.branch = bumpDependencyInput.dependency +'_'+ $event"
+              class="form-control" id="versionInput" placeholder="Version">
+          </div>
+        </div>
+        <div class="form-group row">
+          <div class="col-10">
+            <input type="text" [(ngModel)]="bumpDependencyInput.branch" class="form-control" id="branchInput"
+              placeholder="Branch">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-dark" data-bs-dismiss="modal" (click)="bumpDependency()"
+          [disabled]="!bumpDependencyInput.branch || !bumpDependencyInput.dependency || !bumpDependencyInput.version">Bump</button>
       </div>
     </div>
   </div>
@@ -120,7 +176,7 @@
   <div class="modal-dialog modal-xl" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Search results</h5>
+        <h5 class="modal-title" id="searchResultsModalLabel">Search results</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -134,6 +190,7 @@
           <tbody>
             @for (hit of searchResult; track hit.identifier; let idx = $index) {
             <tr>
+              <td>{{hit.location}}</td>
               <td>{{hit.identifier}}</td>
               <td>{{hit.content}}</td>
             </tr>
@@ -146,3 +203,4 @@
       </div>
     </div>
   </div>
+</div>

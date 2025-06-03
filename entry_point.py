@@ -31,8 +31,8 @@ def pull_entry_point(group_id: str, project_filters: list):
     projects = store.get(group_id)
     for project_filter in project_filters:
         projects = project_filter(projects)
-    logger.info("pull", f"pull projects: {list(map(lambda x: x['id'], projects))}")
-    CountableProcessor(projects).run(lambda x: pull(config_directory, default_branch, x),
+    logger.info("pull", f"pull projects: {list(map(lambda project: project['id'], projects))}")
+    CountableProcessor(projects).run(lambda project: pull(config_directory, default_branch, project),
                                      exception_strategy=ExceptionStrategy.PASS)
 
 
@@ -43,8 +43,8 @@ def push_entry_point(group_id: str, project_filters: list):
     projects = store.get(group_id)
     for project_filter in project_filters:
         projects = project_filter(projects)
-    logger.info("pull", f"push projects: {list(map(lambda x: x['id'], projects))}")
-    CountableProcessor(projects).run(lambda x: push(config_directory, x),
+    logger.info("pull", f"push projects: {list(map(lambda project: project['id'], projects))}")
+    CountableProcessor(projects).run(lambda project: push(config_directory, project),
                                      exception_strategy=ExceptionStrategy.PASS)
 
 
@@ -55,8 +55,8 @@ def clone_entry_point(group_id: str, project_filters: list):
     projects = store.get(group_id)
     for project_filter in project_filters:
         projects = project_filter(projects)
-    logger.info("pull", f"clone projects: {list(map(lambda x: x['id'], projects))}")
-    CountableProcessor(projects).run(lambda x: clone(config_directory, x),
+    logger.info("pull", f"clone projects: {list(map(lambda project: project['id'], projects))}")
+    CountableProcessor(projects).run(lambda project: clone(config_directory, project),
                                      exception_strategy=ExceptionStrategy.PASS)
 
 
@@ -67,8 +67,8 @@ def status_entry_point(group_id: str, project_filters: list):
     projects = store.get(group_id)
     for project_filter in project_filters:
         projects = project_filter(projects)
-    logger.info("status", f"check status of projects: {list(map(lambda x: x['id'], projects))}")
-    return CountableProcessor(projects).run(lambda x: status(config_directory, x),
+    logger.info("status", f"check status of projects: {list(map(lambda project: project['id'], projects))}")
+    return CountableProcessor(projects).run(lambda project: status(config_directory, project),
                                             exception_strategy=ExceptionStrategy.PASS)
 
 
@@ -79,7 +79,7 @@ def search_entry_point(group_id: str, project_filters: list, search_config: Sear
     projects = store.get(group_id)
     for project_filter in project_filters:
         projects = project_filter(projects)
-    logger.info("search", f"search in {list(map(lambda x: x['id'], projects))} for {search_config}")
+    logger.info("search", f"search in {list(map(lambda project: project['id'], projects))} for {search_config}")
     return search(projects, directory, search_config)
 
 
@@ -90,19 +90,20 @@ def create_branch_entry_point(group_id, branch, project_filters):
     projects = store.get(group_id)
     for project_filter in project_filters:
         projects = project_filter(projects)
-    logger.info("create_branch", f"create branch {branch} in : {list(map(lambda x: x['id'], projects))}")
-    return CountableProcessor(projects).run(lambda x: create_branch(config_directory, branch, x),
+    logger.info("create_branch", f"create branch {branch} in : {list(map(lambda project: project['id'], projects))}")
+    return CountableProcessor(projects).run(lambda project: create_branch(config_directory, branch, project),
                                             exception_strategy=ExceptionStrategy.PASS)
 
 
 def bump_dependency_entry_point(group_id, dependency_name, dependency_version, project_filters):
     config = read_configuration("config")
-    config_directory = config.get_value("management.directory")
+    directory = config.get_value("management.directory")
     store = create_store(Storage.JSON)
     projects = store.get(group_id)
     for project_filter in project_filters:
         projects = project_filter(projects)
-    logger.info("create_branch", f"bump {dependency_name} to {dependency_version} in: {projects}")
+    logger.info("bump_dependency",
+                f"bump {dependency_name} to {dependency_version} in: {list(map(lambda project: project['id'], projects))}")
     return CountableProcessor(projects).run(
-        lambda x: bump_dependency(config_directory, dependency_name, dependency_version, x),
+        lambda project: bump_dependency(directory, dependency_name, dependency_version, project),
         exception_strategy=ExceptionStrategy.PASS)

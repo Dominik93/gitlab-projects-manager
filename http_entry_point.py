@@ -11,7 +11,7 @@ from commons.logger import get_logger
 from commons.optional import of
 from commons.store import create_store, Storage
 from entry_point import load_entry_point, reload_entry_point, pull_entry_point, clone_entry_point, status_entry_point, \
-    search_entry_point
+    search_entry_point, create_branch_entry_point, bump_dependency_entry_point
 from project_filter import filter_projects, create_id_filter
 from search import Predicate, SearchConfiguration
 
@@ -27,6 +27,17 @@ class SearchRequest(BaseModel):
     file_text: str = None
     file_regex: str = None
     show_content: bool = False
+
+
+class BumpDependencyRequest(BaseModel):
+    projects_ids: list = []
+    dependency: str
+    version: str
+
+
+class CreateBranchRequest(BaseModel):
+    projects_ids: list = []
+    branch: str
 
 
 app = FastAPI()
@@ -102,6 +113,17 @@ async def post_search(group_id, request: SearchRequest):
     file_predicate = Predicate(of(request.file_text).map(lambda x: x.split(',')).or_get(None), request.file_regex)
     search_configuration = SearchConfiguration(search_predicate, file_predicate, request.show_content)
     return search_entry_point(group_id, _get_projects_filters(request.projects_ids), search_configuration)
+
+
+@app.post("/namespace/{group_id}/projects/branch", tags=['projects'], operation_id="create_branch")
+async def post_create_branch(group_id, request: CreateBranchRequest):
+    return create_branch_entry_point(group_id, request.branch, _get_projects_filters(request.projects_ids))
+
+
+@app.patch("/namespace/{group_id}/projects/bump-dependency", tags=['projects'], operation_id="bump_dependency")
+async def patch_bump_dependency(group_id, request: BumpDependencyRequest):
+    bump_dependency_entry_point(group_id, request.dependency, request.version,
+                                _get_projects_filters(request.projects_ids))
 
 
 def _get_projects_filters(ids):

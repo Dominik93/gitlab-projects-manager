@@ -10,7 +10,15 @@ export type SearchInput = {
   showContent?: boolean,
 }
 
+export type BumpDependencyInput = {
+  ids?: string[],
+  branch?: string,
+  dependency?: string,
+  version?: string
+}
+
 export type SearchHit = {
+  location: string,
   identifier: string,
   content: string
 }
@@ -44,6 +52,8 @@ export class ProjectsComponent implements OnInit {
   groupId = "";
 
   searchInput: SearchInput = {}
+
+  bumpDependencyInput: BumpDependencyInput = {}
 
   searchResult: SearchHit[] = []
 
@@ -121,6 +131,31 @@ export class ProjectsComponent implements OnInit {
     this.projectsService.search(this.groupId, this.searchInput, this.filteredProjects.map(p => p.id))
       .subscribe(this.action((res: any) => { this.searchResult = res }));
   }
+
+  onBumpDependencyAll() {
+    this.bumpDependencyInput.ids = this.filteredProjects.map(p => p.id)
+  }
+
+  onBumpDependency(ids: string) {
+    this.bumpDependencyInput.ids = [ids]
+  }
+
+  bumpDependency() {
+    const branch = this.bumpDependencyInput.branch;
+    const dependency = this.bumpDependencyInput.dependency;
+    const version = this.bumpDependencyInput.version;
+    const ids = this.bumpDependencyInput.ids
+    if (!branch || !dependency || !version || !ids) {
+      return
+    }
+    this.loading = true;
+    this.projectsService.createBranch(this.groupId, branch, ids).subscribe(
+      this.action(() => { 
+        this.projectsService.bumpDependency(this.groupId, dependency, version, ids).subscribe(this.action()) 
+      })
+    )
+  }
+
 
   private action(nextCallback?: Function) {
     return {

@@ -45,13 +45,13 @@ class Hit:
         self.config = config
         self.content = content
 
-    def get_hit(self, identifier) -> Optional:
+    def get_hit(self, location, identifier) -> Optional:
         predicate = self.config.text_predicate.get()
         if predicate.test(self.content):
             content = None
             if self.config.show_content:
                 content = self._find_line(predicate)
-            return of({"identifier": identifier, "content": content})
+            return of({"location": location, "identifier": identifier, "content": content})
         return empty()
 
     def _find_line(self, predicate: Predicate):
@@ -69,13 +69,13 @@ def _read(path):
     return file_content
 
 
-def _search_in_project(project_directory: str, config: SearchConfiguration) -> list:
+def _search_in_project(project: str, project_directory: str, config: SearchConfiguration) -> list:
     hits = []
     for (dirpath, dirnames, filenames) in os.walk(project_directory):
         dirnames[:] = _filter_directories(dirnames)
         for file in _filter_files(config, filenames):
             path = dirpath + '/' + file
-            Hit(config, _read(path)).get_hit(path).if_present(lambda x: hits.append(x))
+            Hit(config, _read(path)).get_hit(project, file).if_present(lambda x: hits.append(x))
     return hits
 
 
@@ -87,7 +87,11 @@ def _filter_directories(dirnames):
     return list(filter(lambda x: x not in EXCLUDED, dirnames))
 
 
-def search(projects: list, directory, config: SearchConfiguration):
-    paths = list(map(lambda project: f"{directory}/{project['namespace']}/{project['name']}", projects))
-    search_results = CountableProcessor(paths).run(lambda x: _search_in_project(x, config))
+def _get_path(directory: str, project: dict):
+    return f"{directory}/{project['namespace']}/{project['name']}"
+
+
+def search(projects: list, directory: str, config: SearchConfiguration):
+    search_results = CountableProcessor(projects).run(
+        lambda project: _search_in_project(project['name'], _get_path(directory, project), config))
     return reduce(list.__add__, search_results, [])

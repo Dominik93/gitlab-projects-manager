@@ -53,4 +53,14 @@ export class ProjectsService {
       .pipe(map(value => value as SearchHit[]));
   }
 
+  createBranch(groupId: string, branch: string, ids?: string[]): Observable<any> {
+    const request = { "projects_ids": ids, "branch": branch }
+    return this.http.post(`${this.api}/namespace/${groupId}/projects/branch`, request);
+  }
+
+  bumpDependency(groupId: string, dependency: string, version: string, ids?: string[]): Observable<any> {
+    const request = { "projects_ids": ids, "dependency": dependency, "version": version }
+    return this.http.patch(`${this.api}/namespace/${groupId}/projects/bump-dependency`, request);
+  }
+
 }

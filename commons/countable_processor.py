@@ -1,4 +1,5 @@
 import time
+import traceback
 from enum import Enum
 
 from commons.logger import get_logger
@@ -30,7 +31,7 @@ class CountableProcessor:
                 item_duration = self._get_duration(item_start)
                 all_duration = self._get_duration(all_start)
                 self.logger.error("run",
-                                  f'Exception "{e}" during iteration {idx + 1}/{total} in {item_duration}/{all_duration}ms')
+                                  f'Exception "{e}" {traceback.format_exc()} during iteration {idx + 1}/{total} in {item_duration}/{all_duration}ms')
                 if exception_strategy == ExceptionStrategy.ASK:
                     retry = input_provider()
                     if retry == 'N':

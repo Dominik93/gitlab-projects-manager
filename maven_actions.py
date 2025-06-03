@@ -8,8 +8,7 @@ def _maven(command):
     return os.popen(command).read().rstrip()
 
 
-def bump_dependency(config, dependency: str, version: str, project: dict):
-    directory = config['management']['directory']
+def bump_dependency(directory, dependency: str, version: str, project: dict):
     project_directory = f"{directory}/{project['namespace']}/{project['name']}"
     if not os.path.isdir(project_directory):
         _maven(
