@@ -35,6 +35,16 @@ export class ProjectsService {
     return this.http.post(`${this.api}/namespace/${groupId}/projects/pull`, request);
   }
 
+  push(groupId: string, ids?: string[]): Observable<any> {
+    const request = { "projects_ids": ids }
+    return this.http.post(`${this.api}/namespace/${groupId}/projects/push`, request);
+  }
+
+  commit(groupId: string, message: string, ids?: string[]): Observable<any> {
+    const request = { "projects_ids": ids, "message": message }
+    return this.http.post(`${this.api}/namespace/${groupId}/projects/commit`, request);
+  }
+
   status(groupId: string, ids?: string[]): Observable<any> {
     const request = { "projects_ids": ids }
     return this.http.post(`${this.api}/namespace/${groupId}/projects/status`, request);

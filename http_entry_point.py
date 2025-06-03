@@ -6,18 +6,21 @@ from starlette.responses import HTMLResponse
 from starlette.staticfiles import StaticFiles
 
 from commons.configuration_reader import read_configuration
-from commons.countable_processor import ExceptionStrategy
-from commons.logger import get_logger
 from commons.optional import of
 from commons.store import create_store, Storage
 from entry_point import load_entry_point, reload_entry_point, pull_entry_point, clone_entry_point, status_entry_point, \
-    search_entry_point, create_branch_entry_point, bump_dependency_entry_point
+    search_entry_point, create_branch_entry_point, bump_dependency_entry_point, push_entry_point, commit_entry_point
 from project_filter import filter_projects, create_id_filter
 from search import Predicate, SearchConfiguration
 
 
 class Filter(BaseModel):
     projects_ids: list = []
+
+
+class CommitReqeust(BaseModel):
+    projects_ids: list = []
+    message: str
 
 
 class SearchRequest(BaseModel):
@@ -58,10 +61,6 @@ app.add_middleware(
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-logger = get_logger("HttpEntryPoint")
-
-strategy = ExceptionStrategy.PASS
-
 
 @app.get('/')
 def get_app_angular():
@@ -91,36 +90,45 @@ async def get_projects(group_id):
     return projects
 
 
-@app.post("/namespace/{group_id}/projects/pull", tags=['projects'], operation_id="pull")
+@app.post("/namespace/{group_id}/projects/push", tags=['git'], operation_id="push")
+async def post_push(group_id, project_filter: Filter):
+    push_entry_point(group_id, _get_projects_filters(project_filter.projects_ids))
+
+
+@app.post("/namespace/{group_id}/projects/commit", tags=['git'], operation_id="commit")
+async def post_commit(group_id, request: CommitReqeust):
+    commit_entry_point(group_id, request.message, _get_projects_filters(request.projects_ids))
+
+
+@app.post("/namespace/{group_id}/projects/pull", tags=['git'], operation_id="pull")
 async def post_pull(group_id, project_filter: Filter):
     pull_entry_point(group_id, _get_projects_filters(project_filter.projects_ids))
 
 
-@app.post("/namespace/{group_id}/projects/clone", tags=['projects'], operation_id="clone")
+@app.post("/namespace/{group_id}/projects/clone", tags=['git'], operation_id="clone")
 async def post_clone(group_id, project_filter: Filter):
     clone_entry_point(group_id, _get_projects_filters(project_filter.projects_ids))
 
 
-@app.post("/namespace/{group_id}/projects/status", tags=['projects'], operation_id="status")
+@app.post("/namespace/{group_id}/projects/status", tags=['git'], operation_id="status")
 async def post_status(group_id, project_filter: Filter):
     status_entry_point(group_id, _get_projects_filters(project_filter.projects_ids))
 
 
-@app.post("/namespace/{group_id}/projects/search", tags=['projects'], operation_id="search")
+@app.post("/namespace/{group_id}/projects/search", tags=['file'], operation_id="search")
 async def post_search(group_id, request: SearchRequest):
-    logger.info("post_search", f"search for {request} in {group_id}")
     search_predicate = Predicate(request.search_text, request.search_regex)
     file_predicate = Predicate(of(request.file_text).map(lambda x: x.split(',')).or_get(None), request.file_regex)
     search_configuration = SearchConfiguration(search_predicate, file_predicate, request.show_content)
     return search_entry_point(group_id, _get_projects_filters(request.projects_ids), search_configuration)
 
 
-@app.post("/namespace/{group_id}/projects/branch", tags=['projects'], operation_id="create_branch")
+@app.post("/namespace/{group_id}/projects/branch", tags=['git'], operation_id="create_branch")
 async def post_create_branch(group_id, request: CreateBranchRequest):
     return create_branch_entry_point(group_id, request.branch, _get_projects_filters(request.projects_ids))
 
 
-@app.patch("/namespace/{group_id}/projects/bump-dependency", tags=['projects'], operation_id="bump_dependency")
+@app.patch("/namespace/{group_id}/projects/bump-dependency", tags=['maven'], operation_id="bump_dependency")
 async def patch_bump_dependency(group_id, request: BumpDependencyRequest):
     bump_dependency_entry_point(group_id, request.dependency, request.version,
                                 _get_projects_filters(request.projects_ids))

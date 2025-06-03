@@ -12,9 +12,10 @@ export type SearchInput = {
 
 export type BumpDependencyInput = {
   ids?: string[],
-  branch?: string,
   dependency?: string,
   version?: string
+  message?: string,
+  branch?: string,
 }
 
 export type SearchHit = {
@@ -144,14 +145,23 @@ export class ProjectsComponent implements OnInit {
     const branch = this.bumpDependencyInput.branch;
     const dependency = this.bumpDependencyInput.dependency;
     const version = this.bumpDependencyInput.version;
+    const message = this.bumpDependencyInput.message;
     const ids = this.bumpDependencyInput.ids
-    if (!branch || !dependency || !version || !ids) {
+    if (!branch || !dependency || !version || !message || !ids) {
       return
     }
     this.loading = true;
     this.projectsService.createBranch(this.groupId, branch, ids).subscribe(
-      this.action(() => { 
-        this.projectsService.bumpDependency(this.groupId, dependency, version, ids).subscribe(this.action()) 
+      this.action(() => {
+        this.projectsService.bumpDependency(this.groupId, dependency, version, ids).subscribe(
+          this.action(() => {
+            this.projectsService.commit(this.groupId, message, ids).subscribe(
+              this.action(() => {
+                this.projectsService.push(this.groupId, ids).subscribe(this.action())
+              })
+            )
+          })
+        )
       })
     )
   }

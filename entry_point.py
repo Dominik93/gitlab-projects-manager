@@ -2,7 +2,7 @@ from commons.configuration_reader import read_configuration
 from commons.countable_processor import CountableProcessor, ExceptionStrategy
 from commons.logger import get_logger
 from commons.store import create_store, Storage
-from git_actions import pull, clone, status, push, create_branch
+from git_actions import pull, clone, status, push, create_branch, commit
 from gitlab_actions import process
 from maven_actions import bump_dependency
 from search import search, SearchConfiguration
@@ -36,6 +36,18 @@ def pull_entry_point(group_id: str, project_filters: list):
                                      exception_strategy=ExceptionStrategy.PASS)
 
 
+def commit_entry_point(group_id: str, message: str, project_filters: list):
+    config = read_configuration("config")
+    config_directory = config.get_value("management.directory")
+    store = create_store(Storage.JSON)
+    projects = store.get(group_id)
+    for project_filter in project_filters:
+        projects = project_filter(projects)
+    logger.info("commit", f"commit with {message} into projects: {list(map(lambda project: project['id'], projects))}")
+    CountableProcessor(projects).run(lambda project: commit(config_directory, message, project),
+                                     exception_strategy=ExceptionStrategy.INTERRUPT)
+
+
 def push_entry_point(group_id: str, project_filters: list):
     config = read_configuration("config")
     config_directory = config.get_value("management.directory")
@@ -43,7 +55,7 @@ def push_entry_point(group_id: str, project_filters: list):
     projects = store.get(group_id)
     for project_filter in project_filters:
         projects = project_filter(projects)
-    logger.info("pull", f"push projects: {list(map(lambda project: project['id'], projects))}")
+    logger.info("push", f"push projects: {list(map(lambda project: project['id'], projects))}")
     CountableProcessor(projects).run(lambda project: push(config_directory, project),
                                      exception_strategy=ExceptionStrategy.PASS)
 
@@ -55,7 +67,7 @@ def clone_entry_point(group_id: str, project_filters: list):
     projects = store.get(group_id)
     for project_filter in project_filters:
         projects = project_filter(projects)
-    logger.info("pull", f"clone projects: {list(map(lambda project: project['id'], projects))}")
+    logger.info("clone", f"clone projects: {list(map(lambda project: project['id'], projects))}")
     CountableProcessor(projects).run(lambda project: clone(config_directory, project),
                                      exception_strategy=ExceptionStrategy.PASS)
 
@@ -92,7 +104,7 @@ def create_branch_entry_point(group_id, branch, project_filters):
         projects = project_filter(projects)
     logger.info("create_branch", f"create branch {branch} in : {list(map(lambda project: project['id'], projects))}")
     return CountableProcessor(projects).run(lambda project: create_branch(config_directory, branch, project),
-                                            exception_strategy=ExceptionStrategy.PASS)
+                                            exception_strategy=ExceptionStrategy.INTERRUPT)
 
 
 def bump_dependency_entry_point(group_id, dependency_name, dependency_version, project_filters):
@@ -106,4 +118,4 @@ def bump_dependency_entry_point(group_id, dependency_name, dependency_version, p
                 f"bump {dependency_name} to {dependency_version} in: {list(map(lambda project: project['id'], projects))}")
     return CountableProcessor(projects).run(
         lambda project: bump_dependency(directory, dependency_name, dependency_version, project),
-        exception_strategy=ExceptionStrategy.PASS)
+        exception_strategy=ExceptionStrategy.INTERRUPT)
