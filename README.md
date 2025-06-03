@@ -1,5 +1,22 @@
 # Gitlab Projects Manager
 
+## Prerequisites
+
+Python minimum 3.10.6 
+
+FastAPI
+
+## Description
+
+Main functionalities:
+- via gitlab REST API re-create group(with all subgroups and projects) in json format with metadata eq name, url
+- using this data you can
+  - clone all projects into local machine
+  - pull changes to be up-to-date
+  - search for text/regexp in projects
+  - bump dependency(via property in pom.xml)
+
+
 ## Configuration
 
 Change name of `config.json.sample` to `config.json` and provide url to gitlab, your token, group id of space in gitlab,
@@ -23,7 +40,10 @@ providers you want to use and other specific configuration.
       "namespace": ["company/components"]
     }
   },
-  "providers": ["name", "archived", "namespace", "url", "ssh"],
+  "providers": {
+    "ui": ["id", "name"],
+    "loader":  ["id", "archived", "namespace", "ssh", "url", "name"]
+  },
   "management": {
     "directory": "/path"
   }
@@ -32,9 +52,36 @@ providers you want to use and other specific configuration.
 
 ## Usage
 
-```commandline
-python gitlab_projects_manager.py
+### CLI
+
+```shell
+python cli_entry_point.py
 ```
+examples:
+```shell
+python cli_entry_point.py --action=load
+python cli_entry_point.py --action=clone
+python cli_entry_point.py --action=pull --project-name=exmaple
+python cli_entry_point.py --action=status --status-file=status-{timestamp}.csv
+python cli_entry_point.py --action=search --search-text=sample --search-regex=sample --file-text=.txt --file-regex=sample --show-content
+```
+
+for more information
+```shell
+python cli_entry_point.py --help
+```
+
+### Web interface
+
+```shell
+fastapi run http_entry_point.py
+```
+
+go to 127.0.0.1:8000 
+
+![web.png](docs/web.png)
+![search.png](docs/search.png)
+![bump.png](docs/bump.png)
 
 ## Customization
 
@@ -68,13 +115,10 @@ config.json
       "namespace": []
     }
   },
-  "providers": [
-    "name",
-    "archived",
-    "domain",
-    "url",
-    "ssh"
-  ],
+  "providers": {
+    "ui": ["id", "name"],
+    "loader":  ["id", "archived", "namespace", "ssh", "url", "name"]
+  },
   "management": {
     "directory": "/path"
   }

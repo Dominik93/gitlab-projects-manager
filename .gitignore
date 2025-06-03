@@ -180,3 +180,4 @@ cython_debug/
 /*.json
 /*.csv
 !/logback.json
+!/config.schema.json

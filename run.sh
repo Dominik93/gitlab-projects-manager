@@ -1,5 +1,10 @@
-python git_actions.py --action=pull
 
-python search.py --action=search --search-text=xxx --search-regex=xxx --file-text=xxx --file-regex=xxx --show-content
+python cli_entry_point.py --action=load
 
-python search.py --action=search --search-text=xxx --file-text=xxx --file-regex=xxx --show-content
+python cli_entry_point.py --action=clone
+
+python cli_entry_point.py --action=pull --project-name=exmaple
+
+python cli_entry_point.py --action=status --status-file=status-{timestamp}.csv
+
+python cli_entry_point.py --action=search --search-text=sample --search-regex=sample --file-text=.txt --file-regex=sample --show-content
