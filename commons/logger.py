@@ -1,3 +1,4 @@
+import functools
 import json
 import os.path
 import time
@@ -19,13 +20,6 @@ __root_level: Level = Level.INFO
 
 __level = {}
 
-if os.path.isfile("logback.json"):
-    with open("logback.json", 'r', encoding="utf-8") as file:
-        logback = json.load(file)
-        __root_level = logback['root']
-        for key in logback['loggers']:
-            __level[key] = Level[logback['loggers'][key]]
-
 
 def set_root_level(level: Level):
     global __root_level
@@ -35,6 +29,14 @@ def set_root_level(level: Level):
 def set_level(name: str, level: Level):
     global __level
     __level[name] = level
+
+
+if os.path.isfile("logback.json"):
+    with open("logback.json", 'r', encoding="utf-8") as file:
+        logback = json.load(file)
+        set_root_level(Level[logback['root']])
+        for key in logback['loggers']:
+            __level[key] = Level[logback['loggers'][key]]
 
 
 def get_logger(name: str):

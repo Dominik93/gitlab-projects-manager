@@ -1,27 +1,31 @@
 import argparse
 
 from commons.configuration_reader import read_configuration
-from commons.countable_processor import CountableProcessor, ExceptionStrategy
+from commons.countable_processor import ExceptionStrategy
 from commons.csv_writer import write
-from commons.logger import set_root_level, Level
 from commons.optional import of
 from commons.store import create_store, Storage
-from git_actions import clone, pull, create_branch, push, status
-from gitlab_accessor import GitlabAccessor
-from gitlab_actions import process
-from maven_actions import bump_dependency
-from project_filter import filter_projects
-from search import Predicate, SearchConfiguration, search
+from entry_point import load_entry_point, reload_entry_point, pull_entry_point, status_entry_point, clone_entry_point, \
+    search_entry_point, push_entry_point, create_branch_entry_point, bump_dependency_entry_point
+from project_filter import filter_projects, create_name_filter
+from search import Predicate, SearchConfiguration
 
-set_root_level(Level.DEBUG)
+store = create_store(Storage.JSON)
+config = read_configuration("config")
+group_id = config.get_value("project.group_id")
+excluded = config.get_value("project.excluded")
+included = config.get_value("project.included")
+default_branch = config.get_value("git.default_branch")
+directory = config.get_value("management.directory")
+strategy = ExceptionStrategy.PASS
 
 
 def command_line_parser():
     parser = argparse.ArgumentParser(description='Gitlab project manager')
     parser.add_argument("--action",
-                        choices=['load', 'clone', 'pull', 'push', 'create-branch', 'status', 'search',
+                        choices=['load', 'reload', 'clone', 'pull', 'push', 'create-branch', 'status', 'search',
                                  'bump-dependency'],
-                        help='Action to perform', default='pull')
+                        help='Action to perform', required=True)
     parser.add_argument("--project-name", help='Name of project')
 
     parser.add_argument("--branch", help='Action: create-branch - Name of branch to create')
@@ -42,49 +46,66 @@ def command_line_parser():
     return parser.parse_args()
 
 
-def get_projects(store, group_id, project_name):
-    projects = store.get(config.get_value(group_id))
-    projects = filter_projects(projects, excluded, included)
-    if project_name is not None:
-        projects = list(filter(lambda project: project["name"] == project_name, projects))
-    return projects
+def _load(args):
+    load_entry_point(read_configuration("config").get_value("project.group_id"))
 
+
+def _reload(args):
+    reload_entry_point(read_configuration("config").get_value("project.group_id"))
+
+
+def _clone(args):
+    clone_entry_point(group_id, _get_projects_filters(args))
+
+
+def _push(args):
+    push_entry_point(group_id, _get_projects_filters(args))
+
+
+def _pull(args):
+    pull_entry_point(group_id, _get_projects_filters(args))
+
+
+def _status(args):
+    projects_statues = status_entry_point(group_id, _get_projects_filters(args))
+    write(args.status_file, projects_statues)
+
+
+def _search(args):
+    search_predicate = Predicate(args.search_text, args.search_regex)
+    file_predicate = Predicate(of(args.file_text).map(lambda x: x.split(',')).or_get(None), args.file_regex)
+    search_configuration = SearchConfiguration(search_predicate, file_predicate, args.show_content)
+    results = search_entry_point(group_id, _get_projects_filters(args), search_configuration)
+    write(args.search_file, results)
+
+
+def _bump_dependency(args):
+    bump_dependency_entry_point(group_id, args.dependency_name, args.dependency_version, _get_projects_filters(args))
+
+
+def _create_branch(args):
+    create_branch_entry_point(group_id, args.branch, _get_projects_filters(args))
+
+
+actions = {
+    "load": _load,
+    "reload": _reload,
+    "status": _status,
+    "clone": _clone,
+    "pull": _pull,
+    "push": _push,
+    "search": _search,
+    "bump-dependency": _bump_dependency,
+    "create-branch": _create_branch
+}
 
 if __name__ == "__main__":
     args = command_line_parser()
-    config = read_configuration("config")
-    group_id = config.get_value("project.group_id")
-    excluded = config.get_value("project.excluded")
-    included = config.get_value("project.included")
-    directory = config.get_value("management.directory")
-    strategy = ExceptionStrategy.PASS
-    store = create_store(Storage.JSON)
-    if args.action == 'load':
-        store.load(lambda: process(group_id), group_id)
+    actions[args.action](args)
 
-    projects = get_projects(store, group_id, args.project_name)
-    if args.action == 'bump-dependency':
-        CountableProcessor(
-            lambda project: bump_dependency(config, args.dependency_name, args.dependency_version, project),
-            strategy=strategy).run(projects)
-    if args.action == 'search':
-        projects = list(map(lambda project: f"{directory}/{project['namespace']}/{project['name']}", projects))
-        search_predicate = Predicate(args.search_text, args.search_regex)
-        file_predicate = Predicate(of(args.file_text).map(lambda x: x.split(',')).or_get(None), args.file_regex)
-        search_configuration = SearchConfiguration(search_predicate, file_predicate, args.show_content)
-        results = search(projects, search_configuration)
-        write(args.search_file, results)
-    if args.action == 'clone':
-        CountableProcessor(lambda project: clone(directory, project), strategy=strategy).run(projects)
-    if args.action == 'pull':
-        CountableProcessor(lambda project: pull(directory, project), strategy=strategy).run(projects)
-    if args.action == 'push':
-        CountableProcessor(lambda project: push(directory, project), strategy=strategy).run(projects)
-    if args.action == 'create-branch':
-        CountableProcessor(lambda project: create_branch(directory, args.branch, project),
-                           strategy=strategy).run(projects)
-    if args.action == 'status':
-        projects_statues = CountableProcessor(lambda project: status(directory, project), strategy=strategy).run(
-            projects)
-        store.store(projects, config.get_value("project.group_id"))
-        write(args.status_file, projects_statues)
+
+def _get_projects_filters(args):
+    return [
+        lambda projects: filter_projects(projects, excluded, included),
+        lambda projects: filter_projects(projects, {}, create_name_filter(args.project_name))
+    ]

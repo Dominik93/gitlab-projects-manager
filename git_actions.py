@@ -1,6 +1,5 @@
 import os
 
-from commons.configuration_reader import read_configuration
 from commons.logger import log, Level
 
 
@@ -40,9 +39,7 @@ def push(directory: str, project: dict):
     _git(f"git -C {project_directory} push")
 
 
-def pull(directory: str, project: dict):
-    config = read_configuration("config")
-    default_branch = config.get_value("git.default_branch")
+def pull(directory: str, default_branch: str, project: dict):
     project_directory = f"{directory}/{project['namespace']}/{project['name']}"
     current_branch = _git(f"git -C {project_directory} branch --show-current")
     if current_branch == default_branch:

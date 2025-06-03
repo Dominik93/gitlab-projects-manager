@@ -87,6 +87,7 @@ def _filter_directories(dirnames):
     return list(filter(lambda x: x not in EXCLUDED, dirnames))
 
 
-def search(paths: list, config: SearchConfiguration):
-    search_results = CountableProcessor(lambda x: _search_in_project(x, config)).run(paths)
+def search(projects: list, directory, config: SearchConfiguration):
+    paths = list(map(lambda project: f"{directory}/{project['namespace']}/{project['name']}", projects))
+    search_results = CountableProcessor(paths).run(lambda x: _search_in_project(x, config))
     return reduce(list.__add__, search_results, [])

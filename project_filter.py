@@ -1,3 +1,11 @@
+def create_name_filter(project_name):
+    return {} if project_name is None else {"name": project_name}
+
+
+def create_id_filter(ids):
+    return {} if len(ids) == 0 else {"id": ids}
+
+
 def filter_projects(projects: list[dict], excluded: dict, included: dict):
     filtered_projects = projects
     filtered_projects = filtered_projects if _should_not_filter(excluded) else (
