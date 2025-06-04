@@ -9,6 +9,7 @@ class ExceptionStrategy(Enum):
     PASS = 1
     INTERRUPT = 2
     ASK = 3
+    RAISE = 4
 
 
 class CountableProcessor:
@@ -36,6 +37,8 @@ class CountableProcessor:
                     retry = input_provider()
                     if retry == 'N':
                         return self.results
+                if exception_strategy == ExceptionStrategy.RAISE:
+                    raise e
                 if exception_strategy == ExceptionStrategy.INTERRUPT:
                     self.logger.warn("run", f'Processing interrupted, returning already processed items')
                     return self.results

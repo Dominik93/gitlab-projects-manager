@@ -5,7 +5,10 @@ from commons.logger import log, Level
 
 @log(Level.DEBUG, start_message="Execute {args}", end_message="Command executed {result} in {duration}ms")
 def _git(command):
-    return os.popen(command).read().rstrip()
+    command_result = os.popen(command).read().rstrip()
+    if "fatal" in command_result:
+        raise Exception
+    return command_result
 
 
 def _is_clear(project_status):
@@ -27,7 +30,7 @@ def status(directory: str, project: dict):
     local_changes = not _is_clear(project_status)
     project['current_branch'] = current_branch
     project['local_changes'] = local_changes
-    return {"name": project['name'], "branch": current_branch, "local_changes": local_changes}
+    return project
 
 
 def create_branch(directory: str, branch: str, project: dict):

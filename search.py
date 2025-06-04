@@ -2,7 +2,7 @@ import os
 import re
 from functools import reduce
 
-from commons.countable_processor import CountableProcessor
+from commons.countable_processor import CountableProcessor, ExceptionStrategy
 from commons.logger import log, Level
 from commons.optional import Optional, of, empty
 
@@ -91,7 +91,8 @@ def _get_path(directory: str, project: dict):
     return f"{directory}/{project['namespace']}/{project['name']}"
 
 
-def search(projects: list, directory: str, config: SearchConfiguration):
+def search(projects: list, directory: str, config: SearchConfiguration, exception_strategy: ExceptionStrategy):
     search_results = CountableProcessor(projects).run(
-        lambda project: _search_in_project(project['name'], _get_path(directory, project), config))
+        lambda project: _search_in_project(project['name'], _get_path(directory, project), config),
+        exception_strategy=exception_strategy)
     return reduce(list.__add__, search_results, [])

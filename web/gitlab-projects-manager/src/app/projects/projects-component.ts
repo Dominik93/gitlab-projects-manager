@@ -62,7 +62,7 @@ export class ProjectsComponent implements OnInit {
 
   loading = false;
 
-  error = false;
+  error = { occured: false, httpMessage: "", message: "" };
 
   ngOnInit(): void {
     this.fetchProjects();
@@ -141,6 +141,16 @@ export class ProjectsComponent implements OnInit {
     this.bumpDependencyInput.ids = [ids]
   }
 
+  onVersionChanged($event: any) {
+    this.bumpDependencyInput.branch = 'feature/' + this.bumpDependencyInput.dependency + '_' + $event;
+    this.bumpDependencyInput.message = 'bump ' + this.bumpDependencyInput.dependency + ' ' + $event
+  }
+
+  onDependencyChanged($event: any) {
+    this.bumpDependencyInput.branch = 'feature/' + $event + '_' + this.bumpDependencyInput.version;
+    this.bumpDependencyInput.message = 'bump ' + $event + ' ' + this.bumpDependencyInput.version
+  }
+
   bumpDependency() {
     const branch = this.bumpDependencyInput.branch;
     const dependency = this.bumpDependencyInput.dependency;
@@ -171,13 +181,13 @@ export class ProjectsComponent implements OnInit {
     return {
       next: (res: any) => {
         this.loading = false;
-        this.error = false;
+        this.error = { occured: false, httpMessage: "", message: "" };
         if (nextCallback) {
           nextCallback(res);
         }
-      }, error: () => {
+      }, error: (res: any) => {
         this.loading = false;
-        this.error = true;
+        this.error = { occured: true, httpMessage: res.message, message: res.error.message };
       }
     };
   }
@@ -206,15 +216,8 @@ export class ProjectsComponent implements OnInit {
       });
   }
 
-  private filter(characteristic: Characteristic, value: any): unknown {
-    const characteristicValue = characteristic.value;
-    if (typeof characteristicValue == "boolean") {
-      return characteristicValue == value
-    }
-    if (typeof characteristicValue == "string") {
-      return characteristicValue.includes(value);
-    }
-    return characteristicValue == value
+  private filter(characteristic: Characteristic, value: any): boolean {
+    return String(characteristic.value).includes(value);
   }
 
 }

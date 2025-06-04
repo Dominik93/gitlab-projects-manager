@@ -53,10 +53,10 @@ export class ProjectsService {
   search(groupId: string, input: SearchInput, ids?: string[]): Observable<SearchHit[]> {
     const request = {
       "projects_ids": ids,
-      "search_text": !input.textRegexp ? input.text : undefined,
-      "search_regex": input.textRegexp ? input.text : undefined,
-      "file_text": !input.fileRegexp ? input.file : undefined,
-      "file_regex": input.fileRegexp ? input.file : undefined,
+      "search_text": input.text,
+      "search_regex": input.textRegexp,
+      "file_text": input.file,
+      "file_regex": input.fileRegexp,
       "show_content": input.showContent
     }
     return this.http.post(`${this.api}/namespace/${groupId}/projects/search`, request)

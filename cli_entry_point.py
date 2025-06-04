@@ -55,19 +55,19 @@ def _reload(args):
 
 
 def _clone(args):
-    clone_entry_point(group_id, _get_projects_filters(args))
+    clone_entry_point(group_id, _get_projects_filters(args), ExceptionStrategy.PASS)
 
 
 def _push(args):
-    push_entry_point(group_id, _get_projects_filters(args))
+    push_entry_point(group_id, _get_projects_filters(args), ExceptionStrategy.PASS)
 
 
 def _pull(args):
-    pull_entry_point(group_id, _get_projects_filters(args))
+    pull_entry_point(group_id, _get_projects_filters(args), ExceptionStrategy.PASS)
 
 
 def _status(args):
-    projects_statues = status_entry_point(group_id, _get_projects_filters(args))
+    projects_statues = status_entry_point(group_id, _get_projects_filters(args), ExceptionStrategy.PASS)
     write(args.status_file, projects_statues)
 
 
@@ -75,16 +75,16 @@ def _search(args):
     search_predicate = Predicate(args.search_text, args.search_regex)
     file_predicate = Predicate(of(args.file_text).map(lambda x: x.split(',')).or_get(None), args.file_regex)
     search_configuration = SearchConfiguration(search_predicate, file_predicate, args.show_content)
-    results = search_entry_point(group_id, _get_projects_filters(args), search_configuration)
+    results = search_entry_point(group_id, _get_projects_filters(args), search_configuration, ExceptionStrategy.PASS)
     write(args.search_file, results)
 
 
 def _bump_dependency(args):
-    bump_dependency_entry_point(group_id, args.dependency_name, args.dependency_version, _get_projects_filters(args))
+    bump_dependency_entry_point(group_id, args.dependency_name, args.dependency_version, _get_projects_filters(args), ExceptionStrategy.PASS)
 
 
 def _create_branch(args):
-    create_branch_entry_point(group_id, args.branch, _get_projects_filters(args))
+    create_branch_entry_point(group_id, args.branch, _get_projects_filters(args), ExceptionStrategy.PASS)
 
 
 actions = {
