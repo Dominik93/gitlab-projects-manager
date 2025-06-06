@@ -4,7 +4,11 @@
   Reason: {{error.message}}.
 </div>
 }
-
+@if (loading) {
+<div class="progress square">
+  <div class="progress-bar dark" role="progressbar" [style.width.%]="progress" [attr.aria-valuenow]="{progress}" aria-valuemin="0" aria-valuemax="100"></div>
+</div>
+}
 <div class="card">
   <div class="card-body">
     <div class="row">
@@ -31,7 +35,7 @@
       <div class="col">
         <div class="float-right margin-for-each">
           <button class="btn btn-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"
-          [disabled]="loading || !filteredProjects.length">
+            [disabled]="loading || !filteredProjects.length">
             Git actions
           </button>
           <ul class="dropdown-menu">
@@ -49,11 +53,6 @@
           <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#bumpDependencyModal"
             (click)="onBumpDependencyAll()" [disabled]="loading || !filteredProjects.length">Bump Dependency</button>
         </div>
-        @if (loading) {
-        <div class="spinner-border float-right" role="status">
-          <span class="sr-only"></span>
-        </div>
-        }
       </div>
     </div>
   </div>
@@ -121,8 +120,7 @@
         </div>
         <div class="form-group row">
           <div class="col-10">
-            <input type="text" [(ngModel)]="addNamespaceInput.group" class="form-control" id="idInput"
-              placeholder="Id">
+            <input type="text" [(ngModel)]="addNamespaceInput.group" class="form-control" id="idInput" placeholder="Id">
           </div>
         </div>
       </div>

@@ -88,8 +88,29 @@ export class ProjectsComponent implements OnInit {
 
   error = { occured: false, httpMessage: "", message: "" };
 
+  progress: number = 0;
+
+  interval: any;
+
   ngOnInit(): void {
     this.fetchNamespaces();
+  }
+
+  startLoading() {
+    this.loading = true;
+    this.interval = setInterval(() => {
+      if (this.progress > 100) {
+        this.progress = 0;
+      } else {
+        this.progress += 5;
+      }
+    }, 500)
+  }
+
+  stopLoading() {
+    this.progress = 0;
+    this.loading = false;
+    clearInterval(this.interval);
   }
 
   onFilterChange(filter: string, $event: any) {
@@ -110,16 +131,17 @@ export class ProjectsComponent implements OnInit {
   }
 
   onAddNamespace() {
-    this.projectsService.addNamespace(this.addNamespaceInput).subscribe(this.action())
+    this.startLoading();
+    this.projectsService.addNamespace(this.addNamespaceInput).subscribe(this.action(() => this.fetchNamespaces()))
   }
 
   onLoad() {
-    this.loading = true;
+    this.startLoading();
     this.projectsService.load(this.selectedNamespace).subscribe(this.action(() => this.fetchProjects()));
   }
 
   onDelete() {
-    this.loading = true;
+    this.startLoading();
     this.projectsService.delete(this.selectedNamespace).subscribe(this.action(() => {
       this.selectedNamespace = ""
       this.projects = []
@@ -131,43 +153,43 @@ export class ProjectsComponent implements OnInit {
   }
 
   onCloneAll() {
-    this.loading = true;
+    this.startLoading();
     this.projectsService.clone(this.selectedNamespace, this.filteredProjects.map(p => p.id)).subscribe(this.action(() => this.fetchProjects()));
   }
 
   onClone(id: string) {
-    this.loading = true;
+    this.startLoading();
     this.projectsService.clone(this.selectedNamespace, [id]).subscribe(this.action(() => this.fetchProjects()));
   }
 
   onPull(id: string) {
-    this.loading = true;
+    this.startLoading();
     this.projectsService.pull(this.selectedNamespace, [id]).subscribe(this.action(() => this.fetchProjects()));
   }
 
   onPullAll() {
-    this.loading = true;
+    this.startLoading();
     this.projectsService.pull(this.selectedNamespace, this.filteredProjects.map(p => p.id)).subscribe(this.action(() => this.fetchProjects()));
   }
 
   onStatus(id: string) {
-    this.loading = true;
+    this.startLoading();
     this.projectsService.status(this.selectedNamespace, [id]).subscribe(this.action(() => this.fetchProjects()));
   }
 
   onStatusAll() {
-    this.loading = true;
+    this.startLoading();
     this.projectsService.status(this.selectedNamespace, this.filteredProjects.map(p => p.id)).subscribe(this.action(() => this.fetchProjects()));
   }
 
   onSearch() {
-    this.loading = true;
+    this.startLoading();
     this.projectsService.search(this.selectedNamespace, this.searchInput, this.filteredProjects.map(p => p.id))
-      .subscribe(this.action((res: any) => { this.fetchSearchResults() }));
+      .subscribe(this.action(() => { this.fetchSearchResults() }));
   }
 
   onSearchResult(result: string) {
-    this.loading = true;
+    this.startLoading();
     this.projectsService.getSearchResult(this.selectedNamespace, result)
       .subscribe(this.action((res: any) => { this.searchResult = res }));
   }
@@ -200,13 +222,16 @@ export class ProjectsComponent implements OnInit {
     if (!branch || !dependency || !version || !message || !ids) {
       return
     }
-    this.loading = true;
+    this.startLoading();
     this.projectsService.createBranch(this.selectedNamespace, branch, ids).subscribe(
       this.action(() => {
+        this.startLoading();
         this.projectsService.bumpDependency(this.selectedNamespace, dependency, version, ids).subscribe(
           this.action(() => {
+            this.startLoading();
             this.projectsService.commit(this.selectedNamespace, message, ids).subscribe(
               this.action(() => {
+                this.startLoading();
                 this.projectsService.push(this.selectedNamespace, ids).subscribe(this.action())
               })
             )
@@ -220,22 +245,21 @@ export class ProjectsComponent implements OnInit {
   private action(nextCallback?: Function) {
     return {
       next: (res: any) => {
-        this.loading = false;
+        this.stopLoading();
         this.error = { occured: false, httpMessage: "", message: "" };
         if (nextCallback) {
           nextCallback(res);
         }
       }, error: (res: any) => {
-        this.loading = false;
+        this.stopLoading();
         this.error = { occured: true, httpMessage: res.message, message: res.error.message };
       }
     };
   }
 
   private fetchNamespaces() {
-    this.projectsService.getNamespaces().subscribe(res => {
-      this.namespaces = res;
-    });
+    this.loading = true
+    this.projectsService.getNamespaces().subscribe(this.action((res: any) => this.namespaces = res));
   }
 
   private fetchSearchResults() {
@@ -246,7 +270,7 @@ export class ProjectsComponent implements OnInit {
     if (this.selectedNamespace === '') {
       return
     }
-    this.loading = true;
+    this.startLoading();
     this.projectsService.getProjects(this.selectedNamespace)
       .subscribe(res => {
         this.projects = [];
@@ -261,7 +285,7 @@ export class ProjectsComponent implements OnInit {
           }
           this.projects.push({ id: item['id'], characteristics: characteristics });
           this.filteredProjects.push({ id: item['id'], characteristics: characteristics });
-          this.loading = false;
+          this.stopLoading();
         });
       });
   }

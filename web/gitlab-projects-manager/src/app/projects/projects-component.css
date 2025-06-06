@@ -13,3 +13,11 @@
 .search-form>* {
     margin-bottom: 16px;
 }
+
+.dark {
+    background-color: #212529;
+}
+
+.square {
+    border-radius: 0;
+}
