@@ -4,7 +4,7 @@
 
 Python minimum 3.10.6 
 
-FastAPI
+FastAPI + fastapi-camelcase
 
 ## Description
 

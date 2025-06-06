@@ -43,51 +43,51 @@ export class ProjectsService {
   }
 
   clone(namespace: string, ids?: string[]): Observable<any> {
-    const request = { "projects_ids": ids }
+    const request = { "projectsIds": ids }
     return this.http.post(`${this.api}/namespace/${namespace}/clone`, request);
   }
 
   pull(namespace: string, ids?: string[]): Observable<any> {
-    const request = { "projects_ids": ids }
+    const request = { "projectsIds": ids }
     return this.http.post(`${this.api}/namespace/${namespace}/pull`, request);
   }
 
   push(namespace: string, ids?: string[]): Observable<any> {
-    const request = { "projects_ids": ids }
+    const request = { "projectsIds": ids }
     return this.http.post(`${this.api}/namespace/${namespace}/push`, request);
   }
 
   commit(namespace: string, message: string, ids?: string[]): Observable<any> {
-    const request = { "projects_ids": ids, "message": message }
+    const request = { "projectsIds": ids, "message": message }
     return this.http.post(`${this.api}/namespace/${namespace}/commit`, request);
   }
 
   status(namespace: string, ids?: string[]): Observable<any> {
-    const request = { "projects_ids": ids }
+    const request = { "projectsIds": ids }
     return this.http.post(`${this.api}/namespace/${namespace}/status`, request);
   }
 
   search(namespace: string, input: SearchInput, ids?: string[]): Observable<SearchHit[]> {
     const request = {
       "name": input.name,
-      "projects_ids": ids,
-      "search_text": input.text,
-      "search_regex": input.textRegexp,
-      "file_text": input.file,
-      "file_regex": input.fileRegexp,
-      "show_content": input.showContent
+      "projectsIds": ids,
+      "searchText": input.text,
+      "searchRegex": input.textRegexp,
+      "fileText": input.file,
+      "fileRegex": input.fileRegexp,
+      "showContent": input.showContent
     }
     return this.http.post(`${this.api}/namespace/${namespace}/search`, request)
       .pipe(map(value => value as SearchHit[]));
   }
 
   createBranch(namespace: string, branch: string, ids?: string[]): Observable<any> {
-    const request = { "projects_ids": ids, "branch": branch }
+    const request = { "projectsIds": ids, "branch": branch }
     return this.http.post(`${this.api}/namespace/${namespace}/branch`, request);
   }
 
   bumpDependency(namespace: string, dependency: string, version: string, ids?: string[]): Observable<any> {
-    const request = { "projects_ids": ids, "dependency": dependency, "version": version }
+    const request = { "projectsIds": ids, "dependency": dependency, "version": version }
     return this.http.patch(`${this.api}/namespace/${namespace}/bump-dependency`, request);
   }
 

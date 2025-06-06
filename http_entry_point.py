@@ -3,7 +3,7 @@ import traceback
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from fastapi_camelcase import CamelModel
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.staticfiles import StaticFiles
 
@@ -21,21 +21,21 @@ from project_filter import filter_projects, create_id_filter
 from search import SearchConfiguration, text_predicate, regexp_predicate
 
 
-class Filter(BaseModel):
+class Filter(CamelModel):
     projects_ids: list = []
 
 
-class AddGroupRequest(BaseModel):
+class AddGroupRequest(CamelModel):
     name: str
     group: str
 
 
-class CommitReqeust(BaseModel):
+class CommitReqeust(CamelModel):
     projects_ids: list = []
     message: str
 
 
-class SearchRequest(BaseModel):
+class SearchRequest(CamelModel):
     name: str
     projects_ids: list = []
     search_text: str = None
@@ -45,13 +45,13 @@ class SearchRequest(BaseModel):
     show_content: bool = False
 
 
-class BumpDependencyRequest(BaseModel):
+class BumpDependencyRequest(CamelModel):
     projects_ids: list = []
     dependency: str
     version: str
 
 
-class CreateBranchRequest(BaseModel):
+class CreateBranchRequest(CamelModel):
     projects_ids: list = []
     branch: str
 
@@ -170,7 +170,7 @@ async def post_create_branch(name: str, request: CreateBranchRequest):
         return _internal_server_error(e)
 
 
-@app.get("/namespace/{name}/search", tags=['file'], operation_id="get_search_results")
+@app.get("/namespace/{name}/search", tags=['file'], operation_id="get_search_result")
 async def get_search_results(name: str):
     try:
         return get_search_results_entry_point(name)
