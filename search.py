@@ -30,6 +30,12 @@ class Predicate:
             return re.search(self.regexp.get(), content)
         raise Exception("Text and regexp are None")
 
+    def __str__(self):
+        if self.text.is_present():
+            return f'{self.text.map(lambda x: "Text:" + str(x)).or_get("")}'
+        if self.regexp.is_present():
+            return f'{self.regexp.map(lambda x: "Regexp:" + str(x)).or_get("")}'
+
 
 class SearchConfiguration:
 
@@ -37,6 +43,9 @@ class SearchConfiguration:
         self.text_predicate = of(text_predicate)
         self.file_predicate = of(file_predicate)
         self.show_content = show_content
+
+    def __str__(self):
+        return f'Content: {self.text_predicate.map(lambda x: str(x)).or_get("")} File: {self.file_predicate.map(lambda x: str(x)).or_get("")}'
 
 
 class Hit:
@@ -91,7 +100,7 @@ def _get_path(directory: str, project: dict):
     return f"{directory}/{project['namespace']}/{project['name']}"
 
 
-def search(projects: list, directory: str, config: SearchConfiguration, exception_strategy: ExceptionStrategy):
+def search(projects: list, directory: str, config: SearchConfiguration, exception_strategy: ExceptionStrategy = ExceptionStrategy.INTERRUPT):
     search_results = CountableProcessor(projects).run(
         lambda project: _search_in_project(project['name'], _get_path(directory, project), config),
         exception_strategy=exception_strategy)

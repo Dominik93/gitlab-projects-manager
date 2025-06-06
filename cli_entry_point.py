@@ -5,8 +5,10 @@ from commons.countable_processor import ExceptionStrategy
 from commons.csv_writer import write
 from commons.optional import of
 from commons.store import create_store, Storage
-from entry_point import load_entry_point, reload_entry_point, pull_entry_point, status_entry_point, clone_entry_point, \
-    search_entry_point, push_entry_point, create_branch_entry_point, bump_dependency_entry_point
+from entry_point import load_namespace_entry_point, pull_entry_point, status_entry_point, \
+    clone_entry_point, \
+    search_entry_point, push_entry_point, create_branch_entry_point, bump_dependency_entry_point, \
+    delete_namespace_entry_point
 from project_filter import filter_projects, create_name_filter
 from search import Predicate, SearchConfiguration
 
@@ -23,7 +25,7 @@ strategy = ExceptionStrategy.PASS
 def command_line_parser():
     parser = argparse.ArgumentParser(description='Gitlab project manager')
     parser.add_argument("--action",
-                        choices=['load', 'reload', 'clone', 'pull', 'push', 'create-branch', 'status', 'search',
+                        choices=['load', 'delete', 'clone', 'pull', 'push', 'create-branch', 'status', 'search',
                                  'bump-dependency'],
                         help='Action to perform', required=True)
     parser.add_argument("--project-name", help='Name of project')
@@ -47,11 +49,12 @@ def command_line_parser():
 
 
 def _load(args):
-    load_entry_point(read_configuration("config").get_value("project.group_id"))
+    group_id = read_configuration("config").get_value("project.group_id")
+    load_namespace_entry_point(group_id, group_id)
 
 
-def _reload(args):
-    reload_entry_point(read_configuration("config").get_value("project.group_id"))
+def _delete(args):
+    delete_namespace_entry_point(read_configuration("config").get_value("project.group_id"))
 
 
 def _clone(args):
@@ -75,12 +78,14 @@ def _search(args):
     search_predicate = Predicate(args.search_text, args.search_regex)
     file_predicate = Predicate(of(args.file_text).map(lambda x: x.split(',')).or_get(None), args.file_regex)
     search_configuration = SearchConfiguration(search_predicate, file_predicate, args.show_content)
-    results = search_entry_point(group_id, _get_projects_filters(args), search_configuration, ExceptionStrategy.PASS)
+    results = search_entry_point(group_id, args.search_file, _get_projects_filters(args), search_configuration,
+                                 ExceptionStrategy.PASS)
     write(args.search_file, results)
 
 
 def _bump_dependency(args):
-    bump_dependency_entry_point(group_id, args.dependency_name, args.dependency_version, _get_projects_filters(args), ExceptionStrategy.PASS)
+    bump_dependency_entry_point(group_id, args.dependency_name, args.dependency_version, _get_projects_filters(args),
+                                ExceptionStrategy.PASS)
 
 
 def _create_branch(args):
@@ -89,7 +94,7 @@ def _create_branch(args):
 
 actions = {
     "load": _load,
-    "reload": _reload,
+    "delete": _delete,
     "status": _status,
     "clone": _clone,
     "pull": _pull,

@@ -1,3 +1,5 @@
+import traceback
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,10 +9,14 @@ from starlette.staticfiles import StaticFiles
 
 from commons.configuration_reader import read_configuration
 from commons.countable_processor import ExceptionStrategy
+from commons.logger import get_logger
 from commons.optional import of
-from commons.store import create_store, Storage
-from entry_point import load_entry_point, reload_entry_point, pull_entry_point, clone_entry_point, status_entry_point, \
-    search_entry_point, create_branch_entry_point, bump_dependency_entry_point, push_entry_point, commit_entry_point
+from entry_point import load_namespace_entry_point, pull_entry_point, clone_entry_point, \
+    status_entry_point, \
+    search_entry_point, create_branch_entry_point, bump_dependency_entry_point, push_entry_point, commit_entry_point, \
+    delete_namespace_entry_point, get_namespaces_entry_point, get_namespace_projects_entry_point, \
+    get_search_results_entry_point, \
+    get_search_result_entry_point
 from project_filter import filter_projects, create_id_filter
 from search import SearchConfiguration, text_predicate, regexp_predicate
 
@@ -19,12 +25,18 @@ class Filter(BaseModel):
     projects_ids: list = []
 
 
+class AddGroupRequest(BaseModel):
+    name: str
+    group: str
+
+
 class CommitReqeust(BaseModel):
     projects_ids: list = []
     message: str
 
 
 class SearchRequest(BaseModel):
+    name: str
     projects_ids: list = []
     search_text: str = None
     search_regex: bool = False
@@ -44,6 +56,7 @@ class CreateBranchRequest(BaseModel):
     branch: str
 
 
+logger = get_logger("HttpEntryPoint")
 app = FastAPI()
 
 origins = [
@@ -70,112 +83,135 @@ def get_app_angular():
     return HTMLResponse(html_content, status_code=200)
 
 
-@app.post("/namespace/{group_id}", tags=['group'], operation_id="loadGroup")
-async def post_load_group(group_id):
+@app.get("/namespace", tags=['namespace'], operation_id="get_namespaces")
+async def get_namespaces():
     try:
-        load_entry_point(group_id)
+        return get_namespaces_entry_point()
     except Exception as e:
-        return internal_server_error(e)
+        return _internal_server_error(e)
 
 
-@app.patch("/namespace/{group_id}", tags=['group'], operation_id="reloadGroup")
-async def patch_reload_group(group_id):
+@app.post("/namespace", tags=['namespace'], operation_id="add_namespace")
+async def post_add_namespace(request: AddGroupRequest):
     try:
-        reload_entry_point(group_id)
+        load_namespace_entry_point(request.name, request.group)
     except Exception as e:
-        return internal_server_error(e)
+        return _internal_server_error(e)
 
 
-@app.get("/namespace/{group_id}/projects", tags=['projects'], operation_id="getProjects")
-async def get_projects(group_id):
+@app.delete("/namespace/{name}", tags=['namespace'], operation_id="delete_namespace")
+async def delete_namespace(name: str):
     try:
-        store = create_store(Storage.JSON)
-        projects = store.get(group_id)
+        delete_namespace_entry_point(name)
+    except Exception as e:
+        return _internal_server_error(e)
+
+
+@app.get("/namespace/{name}", tags=['namespace'], operation_id="get_namespace")
+async def get_namespace(name: str):
+    try:
+        projects = get_namespace_projects_entry_point(name)
         providers = _get_blocked_providers()
         for project in projects:
             for key in providers:
                 del project[key]
         return projects
     except Exception as e:
-        return internal_server_error(e)
+        return _internal_server_error(e)
 
 
-@app.post("/namespace/{group_id}/projects/push", tags=['git'], operation_id="push")
-async def post_push(group_id, project_filter: Filter):
+@app.post("/namespace/{name}/push", tags=['git'], operation_id="push")
+async def post_push(name: str, project_filter: Filter):
     try:
-        push_entry_point(group_id, _get_projects_filters(project_filter.projects_ids), ExceptionStrategy.RAISE)
+        push_entry_point(name, _get_projects_filters(project_filter.projects_ids), ExceptionStrategy.RAISE)
     except Exception as e:
-        return internal_server_error(e)
+        return _internal_server_error(e)
 
 
-@app.post("/namespace/{group_id}/projects/commit", tags=['git'], operation_id="commit")
-async def post_commit(group_id, request: CommitReqeust):
+@app.post("/namespace/{name}/commit", tags=['git'], operation_id="commit")
+async def post_commit(name: str, request: CommitReqeust):
     try:
-        commit_entry_point(group_id, request.message, _get_projects_filters(request.projects_ids),
+        commit_entry_point(name, request.message, _get_projects_filters(request.projects_ids),
                            ExceptionStrategy.RAISE)
     except Exception as e:
-        return internal_server_error(e)
+        return _internal_server_error(e)
 
 
-@app.post("/namespace/{group_id}/projects/pull", tags=['git'], operation_id="pull")
-async def post_pull(group_id, project_filter: Filter):
+@app.post("/namespace/{name}/pull", tags=['git'], operation_id="pull")
+async def post_pull(name: str, project_filter: Filter):
     try:
-        pull_entry_point(group_id, _get_projects_filters(project_filter.projects_ids), ExceptionStrategy.RAISE)
+        pull_entry_point(name, _get_projects_filters(project_filter.projects_ids), ExceptionStrategy.RAISE)
     except Exception as e:
-        return internal_server_error(e)
+        return _internal_server_error(e)
 
 
-@app.post("/namespace/{group_id}/projects/clone", tags=['git'], operation_id="clone")
-async def post_clone(group_id, project_filter: Filter):
+@app.post("/namespace/{name}/clone", tags=['git'], operation_id="clone")
+async def post_clone(name: str, project_filter: Filter):
     try:
-        clone_entry_point(group_id, _get_projects_filters(project_filter.projects_ids), ExceptionStrategy.RAISE)
+        clone_entry_point(name, _get_projects_filters(project_filter.projects_ids), ExceptionStrategy.RAISE)
     except Exception as e:
-        return internal_server_error(e)
+        return _internal_server_error(e)
 
 
-@app.post("/namespace/{group_id}/projects/status", tags=['git'], operation_id="status")
-async def post_status(group_id, project_filter: Filter):
+@app.post("/namespace/{name}/status", tags=['git'], operation_id="status")
+async def post_status(name: str, project_filter: Filter):
     try:
-        status_entry_point(group_id, _get_projects_filters(project_filter.projects_ids), ExceptionStrategy.RAISE)
+        status_entry_point(name, _get_projects_filters(project_filter.projects_ids), ExceptionStrategy.RAISE)
     except Exception as e:
-        return internal_server_error(e)
+        return _internal_server_error(e)
 
 
-@app.post("/namespace/{group_id}/projects/search", tags=['file'], operation_id="search")
-async def post_search(group_id, request: SearchRequest):
+@app.post("/namespace/{name}/branch", tags=['git'], operation_id="create_branch")
+async def post_create_branch(name: str, request: CreateBranchRequest):
+    try:
+        return create_branch_entry_point(name, request.branch, _get_projects_filters(request.projects_ids),
+                                         ExceptionStrategy.RAISE)
+    except Exception as e:
+        return _internal_server_error(e)
+
+
+@app.get("/namespace/{name}/search", tags=['file'], operation_id="get_search_results")
+async def get_search_results(name: str):
+    try:
+        return get_search_results_entry_point(name)
+    except Exception as e:
+        return _internal_server_error(e)
+
+
+@app.get("/namespace/{name}/search/{result}", tags=['file'], operation_id="get_search_results")
+async def get_search_result(name: str, result: str):
+    try:
+        return get_search_result_entry_point(name, result)
+    except Exception as e:
+        return _internal_server_error(e)
+
+
+@app.post("/namespace/{name}/search", tags=['file'], operation_id="search")
+async def post_search(name: str, request: SearchRequest):
     try:
         search_predicate = (of(request.search_text)
                             .map(lambda x: regexp_predicate(x) if request.search_regex else text_predicate(x))
                             .or_else_throw())
         file_predicate = (of(request.file_text)
-                          .map(lambda x: regexp_predicate(x) if request.search_regex else text_predicate(x.split(',')))
+                          .map(lambda x: regexp_predicate(x) if request.file_regex else text_predicate(x.split(',')))
                           .or_get(None))
         search_configuration = SearchConfiguration(search_predicate, file_predicate, request.show_content)
-        return search_entry_point(group_id, _get_projects_filters(request.projects_ids), search_configuration,
+        return search_entry_point(name, request.name, _get_projects_filters(request.projects_ids), search_configuration,
                                   ExceptionStrategy.RAISE)
     except Exception as e:
-        return internal_server_error(e)
+        return _internal_server_error(e)
 
 
-@app.post("/namespace/{group_id}/projects/branch", tags=['git'], operation_id="create_branch")
-async def post_create_branch(group_id, request: CreateBranchRequest):
+@app.patch("/namespace/{name}/bump-dependency", tags=['maven'], operation_id="bump_dependency")
+async def patch_bump_dependency(name: str, request: BumpDependencyRequest):
     try:
-        return create_branch_entry_point(group_id, request.branch, _get_projects_filters(request.projects_ids),
-                                         ExceptionStrategy.RAISE)
-    except Exception as e:
-        return internal_server_error(e)
-
-
-@app.patch("/namespace/{group_id}/projects/bump-dependency", tags=['maven'], operation_id="bump_dependency")
-async def patch_bump_dependency(group_id, request: BumpDependencyRequest):
-    try:
-        bump_dependency_entry_point(group_id, request.dependency, request.version,
+        bump_dependency_entry_point(name, request.dependency, request.version,
                                     _get_projects_filters(request.projects_ids), ExceptionStrategy.RAISE)
     except Exception as e:
-        return internal_server_error(e)
+        return _internal_server_error(e)
 
 
-def _get_projects_filters(ids):
+def _get_projects_filters(ids: list):
     return [lambda projects: filter_projects(projects, {}, create_id_filter(ids))]
 
 
@@ -190,9 +226,10 @@ def _get_blocked_providers():
     return blocked_providers
 
 
+def _internal_server_error(e):
+    logger.error("Error", f"Error: {traceback.format_exc()}")
+    return JSONResponse(status_code=500, content={"error": "Internal Server Error", "message": str(e)})
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
-
-def internal_server_error(e):
-    return JSONResponse(status_code=500, content={"error": "Internal Server Error", "message": str(e)})

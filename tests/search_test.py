@@ -1,5 +1,6 @@
 import unittest
 
+from commons.countable_processor import ExceptionStrategy
 from search import search, SearchConfiguration, regexp_predicate, text_predicate
 
 

@@ -178,6 +178,7 @@ cython_debug/
 /providers_implementation/tests
 !/providers_implementation/default_providers.py
 /*.json
+/resources/namespace/*.json
+/resources/search/*.json
 /*.csv
 !/logback.json
-!/config.schema.json

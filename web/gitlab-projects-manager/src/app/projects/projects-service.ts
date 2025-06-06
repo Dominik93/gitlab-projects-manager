@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
-import { SearchHit, SearchInput } from './projects-component';
+import { AddNamespaceInput, SearchHit, SearchInput, SearchResult } from './projects-component';
 
 
 @Injectable({
@@ -13,45 +13,63 @@ export class ProjectsService {
 
   constructor(private http: HttpClient) { }
 
-  load(groupId: string): Observable<any> {
-    return this.http.post(`${this.api}/namespace/${groupId}`, {});
+  getNamespaces(): Observable<string[]> {
+    return this.http.get(`${this.api}/namespace`).pipe(map(value => value as string[]));
   }
 
-  reload(groupId: string): Observable<any> {
-    return this.http.patch(`${this.api}/namespace/${groupId}`, {});
+  getSearchResults(namespace: string): Observable<string[]> {
+    return this.http.get(`${this.api}/namespace/${namespace}/search`).pipe(map(value => value as string[]));
   }
 
-  getProjects(groupId: string): Observable<{ [id: string]: any }[]> {
-    return this.http.get(`${this.api}/namespace/${groupId}/projects`).pipe(map(value => value as { [id: string]: any }[]));
+  getSearchResult(namespace: string, result: string): Observable<SearchResult> {
+    return this.http.get(`${this.api}/namespace/${namespace}/search/${result}`).pipe(map(value => value as SearchResult));
   }
 
-  clone(groupId: string, ids?: string[]): Observable<any> {
+  addNamespace(addNamespaceInput: AddNamespaceInput) {
+    const request = { "name": addNamespaceInput.name, "group": addNamespaceInput.group }
+    return this.http.post(`${this.api}/namespace`, request);
+  }
+
+  load(namespace: string): Observable<any> {
+    return this.http.get(`${this.api}/namespace/${namespace}`);
+  }
+
+  delete(namespace: string): Observable<any> {
+    return this.http.delete(`${this.api}/namespace/${namespace}`);
+  }
+
+  getProjects(namespace: string): Observable<{ [id: string]: any }[]> {
+    return this.http.get(`${this.api}/namespace/${namespace}`).pipe(map(value => value as { [id: string]: any }[]));
+  }
+
+  clone(namespace: string, ids?: string[]): Observable<any> {
     const request = { "projects_ids": ids }
-    return this.http.post(`${this.api}/namespace/${groupId}/projects/clone`, request);
+    return this.http.post(`${this.api}/namespace/${namespace}/clone`, request);
   }
 
-  pull(groupId: string, ids?: string[]): Observable<any> {
+  pull(namespace: string, ids?: string[]): Observable<any> {
     const request = { "projects_ids": ids }
-    return this.http.post(`${this.api}/namespace/${groupId}/projects/pull`, request);
+    return this.http.post(`${this.api}/namespace/${namespace}/pull`, request);
   }
 
-  push(groupId: string, ids?: string[]): Observable<any> {
+  push(namespace: string, ids?: string[]): Observable<any> {
     const request = { "projects_ids": ids }
-    return this.http.post(`${this.api}/namespace/${groupId}/projects/push`, request);
+    return this.http.post(`${this.api}/namespace/${namespace}/push`, request);
   }
 
-  commit(groupId: string, message: string, ids?: string[]): Observable<any> {
+  commit(namespace: string, message: string, ids?: string[]): Observable<any> {
     const request = { "projects_ids": ids, "message": message }
-    return this.http.post(`${this.api}/namespace/${groupId}/projects/commit`, request);
+    return this.http.post(`${this.api}/namespace/${namespace}/commit`, request);
   }
 
-  status(groupId: string, ids?: string[]): Observable<any> {
+  status(namespace: string, ids?: string[]): Observable<any> {
     const request = { "projects_ids": ids }
-    return this.http.post(`${this.api}/namespace/${groupId}/projects/status`, request);
+    return this.http.post(`${this.api}/namespace/${namespace}/status`, request);
   }
 
-  search(groupId: string, input: SearchInput, ids?: string[]): Observable<SearchHit[]> {
+  search(namespace: string, input: SearchInput, ids?: string[]): Observable<SearchHit[]> {
     const request = {
+      "name": input.name,
       "projects_ids": ids,
       "search_text": input.text,
       "search_regex": input.textRegexp,
@@ -59,18 +77,18 @@ export class ProjectsService {
       "file_regex": input.fileRegexp,
       "show_content": input.showContent
     }
-    return this.http.post(`${this.api}/namespace/${groupId}/projects/search`, request)
+    return this.http.post(`${this.api}/namespace/${namespace}/search`, request)
       .pipe(map(value => value as SearchHit[]));
   }
 
-  createBranch(groupId: string, branch: string, ids?: string[]): Observable<any> {
+  createBranch(namespace: string, branch: string, ids?: string[]): Observable<any> {
     const request = { "projects_ids": ids, "branch": branch }
-    return this.http.post(`${this.api}/namespace/${groupId}/projects/branch`, request);
+    return this.http.post(`${this.api}/namespace/${namespace}/branch`, request);
   }
 
-  bumpDependency(groupId: string, dependency: string, version: string, ids?: string[]): Observable<any> {
+  bumpDependency(namespace: string, dependency: string, version: string, ids?: string[]): Observable<any> {
     const request = { "projects_ids": ids, "dependency": dependency, "version": version }
-    return this.http.patch(`${this.api}/namespace/${groupId}/projects/bump-dependency`, request);
+    return this.http.patch(`${this.api}/namespace/${namespace}/bump-dependency`, request);
   }
 
 }

@@ -9,27 +9,45 @@
   <div class="card-body">
     <div class="row">
       <div class="col col-2">
-        <input type="text" [(ngModel)]="groupId" class="form-control" id="groupIdInput" placeholder="Select group id">
+        <input type="text" [(ngModel)]="selectedNamespace" class="form-control" id="namespaceInput"
+          placeholder="Selected namespace" disabled="true">
       </div>
       <div class="col">
-        <div class="actions items">
-          <button type="button" class="btn btn-dark" (click)="onLoad()" [disabled]="loading">Load group</button>
-          <button type="button" class="btn btn-dark" (click)="onReload()"
-            [disabled]="loading|| !filteredProjects.length">Reload group</button>
-          <button type="button" class="btn btn-dark" (click)="onCloneAll()"
-            [disabled]="loading || !filteredProjects.length">Clone</button>
-          <button type="button" class="btn btn-dark" (click)="onPullAll()"
-            [disabled]="loading|| !filteredProjects.length">Pull</button>
-          <button type="button" class="btn btn-dark" (click)="onStatusAll()"
-            [disabled]="loading|| !filteredProjects.length">Status</button>
+        <div class="margin-for-each">
+          <button class="btn btn-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Select namespace
+          </button>
+          <ul class="dropdown-menu">
+            @for (namespace of namespaces; track namespace) {
+            <li><a class="dropdown-item" (click)="onSelectNamespace(namespace)">{{namespace}}</a></li>
+            }
+            <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#addNamespaceModal">Add</a></li>
+          </ul>
+          <button type="button" class="btn btn-dark" (click)="onDelete()"
+            [disabled]="loading || !selectedNamespace">Delete</button>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="float-right margin-for-each">
+          <button class="btn btn-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+          [disabled]="loading || !filteredProjects.length">
+            Git actions
+          </button>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" [class]="{'disabled': loading || !filteredProjects.length }"
+                (click)="onCloneAll()">Clone</a></li>
+            <li><a class="dropdown-item" [class]="{'disabled': loading || !filteredProjects.length }"
+                (click)="onPullAll()">Pull</a></li>
+            <li><a class="dropdown-item" [class]="{'disabled': loading || !filteredProjects.length }"
+                (click)="onStatusAll()">Status</a></li>
+          </ul>
           <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#searchModal"
-            [disabled]="loading|| !filteredProjects.length">Search</button>
-          @if (searchResult) {
+            [disabled]="loading || !filteredProjects.length">Search</button>
           <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#searchResultsModal"
-            [disabled]="loading || !searchResult.length">Search results</button>
-          }
+            [disabled]="loading || !searchResults.length">Search results</button>
           <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#bumpDependencyModal"
-            (click)="onBumpDependencyAll()" [disabled]="loading|| !filteredProjects.length">Bump Dependency</button>
+            (click)="onBumpDependencyAll()" [disabled]="loading || !filteredProjects.length">Bump Dependency</button>
         </div>
         @if (loading) {
         <div class="spinner-border float-right" role="status">
@@ -69,7 +87,7 @@
           <td>{{characteristic.value}}</td>
           }
           <td>
-            <div class="actions items">
+            <div class="float-right margin-for-each">
               <button type="button" class="btn btn-dark" (click)="onPull(project.id)" [disabled]="loading">Pull</button>
               <button type="button" class="btn btn-dark" (click)="onClone(project.id)"
                 [disabled]="loading">Clone</button>
@@ -86,6 +104,36 @@
   </div>
 </div>
 
+<div class="modal fade" id="addNamespaceModal" tabindex="-1" role="dialog" aria-labelledby="addNamespaceModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addNamespaceModalLabel">Add namespace</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body search-form">
+        <div class="form-group row">
+          <div class="col-10">
+            <input type="text" [(ngModel)]="addNamespaceInput.name" class="form-control" id="nameInput"
+              placeholder="Name">
+          </div>
+        </div>
+        <div class="form-group row">
+          <div class="col-10">
+            <input type="text" [(ngModel)]="addNamespaceInput.group" class="form-control" id="idInput"
+              placeholder="Id">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-dark" data-bs-dismiss="modal" (click)="onAddNamespace()">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel"
   aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
@@ -95,6 +143,12 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body search-form">
+        <div class="form-group row">
+          <div class="col-10">
+            <input type="text" [(ngModel)]="searchInput.name" class="form-control" id="searchNameInput"
+              placeholder="Name">
+          </div>
+        </div>
         <div class="form-group row">
           <div class="col-10">
             <input type="text" [(ngModel)]="searchInput.text" class="form-control" id="searchTextInput"
@@ -144,7 +198,8 @@
       <div class="modal-body search-form">
         <div class="form-group row">
           <div class="col-10">
-            <input type="text" [(ngModel)]="bumpDependencyInput.dependency" (ngModelChange)="onDependencyChanged($event)" class="form-control" id="dependencyInput"
+            <input type="text" [(ngModel)]="bumpDependencyInput.dependency"
+              (ngModelChange)="onDependencyChanged($event)" class="form-control" id="dependencyInput"
               placeholder="Dependency (property)">
           </div>
         </div>
@@ -182,9 +237,21 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="searchResultsModalLabel">Search results</h5>
+        <div class="ml-auto margin-left">
+          <button class="btn btn-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Select result
+          </button>
+          <ul class="dropdown-menu">
+            @for (result of searchResults; track result) {
+            <li><a class="dropdown-item" (click)="onSearchResult(result)">{{result}}</a></li>
+            }
+          </ul>
+        </div>
+
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
+        {{searchResult?.metadata}}
         <table class="table">
           <thead>
             <tr>
@@ -194,7 +261,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (hit of searchResult; track hit.identifier; let idx = $index) {
+            @for (hit of searchResult?.hits; track hit.identifier; let idx = $index) {
             <tr>
               <td>{{hit.location}}</td>
               <td>{{hit.identifier}}</td>

@@ -1,12 +1,15 @@
-.items>* {
+.margin-for-each>* {
     margin-right: 8px;
 }
 
-.actions {
+.margin-left {
+    margin-left: 8px;
+}
+
+.float-right {
     float: right;
 }
 
 .search-form>* {
     margin-bottom: 16px;
-
 }

@@ -12,7 +12,7 @@ def ssh_provider(project):
 
 
 @add_provider('id')
-def ssh_provider(project):
+def id_provider(project):
     return project['id']
 
 

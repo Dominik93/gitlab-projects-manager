@@ -2,12 +2,23 @@ import { Component, inject, OnInit } from '@angular/core';
 import { ProjectsService } from './projects-service';
 import { FormsModule } from '@angular/forms';
 
+export type Namespace = {
+  name: string,
+  group: string,
+}
+
 export type SearchInput = {
+  name?: string,
   text?: string,
   textRegexp?: boolean,
   file?: string,
   fileRegexp?: boolean,
   showContent?: boolean,
+}
+
+export type AddNamespaceInput = {
+  name?: string,
+  group?: string,
 }
 
 export type BumpDependencyInput = {
@@ -16,6 +27,11 @@ export type BumpDependencyInput = {
   version?: string
   message?: string,
   branch?: string,
+}
+
+export type SearchResult = {
+  metadata: string;
+  hits: SearchHit[];
 }
 
 export type SearchHit = {
@@ -42,30 +58,38 @@ type Characteristic = {
 })
 export class ProjectsComponent implements OnInit {
 
+
+
   projectsService: ProjectsService = inject(ProjectsService);
 
-  headers: string[] = []
+  headers: string[] = [];
 
-  projects: Project[] = []
+  namespaces: string[] = [];
 
-  filteredProjects: Project[] = []
+  projects: Project[] = [];
 
-  groupId = "";
+  filteredProjects: Project[] = [];
 
-  searchInput: SearchInput = {}
+  selectedNamespace = "";
 
-  bumpDependencyInput: BumpDependencyInput = {}
+  searchInput: SearchInput = {};
 
-  searchResult: SearchHit[] = []
+  bumpDependencyInput: BumpDependencyInput = {};
 
-  filters: { [id: string]: any } = {}
+  addNamespaceInput: AddNamespaceInput = {};
+
+  searchResult?: SearchResult;
+
+  searchResults: string[] = [];
+
+  filters: { [id: string]: any } = {};
 
   loading = false;
 
   error = { occured: false, httpMessage: "", message: "" };
 
   ngOnInit(): void {
-    this.fetchProjects();
+    this.fetchNamespaces();
   }
 
   onFilterChange(filter: string, $event: any) {
@@ -79,59 +103,75 @@ export class ProjectsComponent implements OnInit {
     }
   }
 
-  onLoad() {
-    this.loading = true;
-    this.projectsService.load(this.groupId).subscribe(this.action());
+  onSelectNamespace(name: string) {
+    this.selectedNamespace = name;
     this.fetchProjects();
+    this.fetchSearchResults();
   }
 
-  onReload() {
+  onAddNamespace() {
+    this.projectsService.addNamespace(this.addNamespaceInput).subscribe(this.action())
+  }
+
+  onLoad() {
     this.loading = true;
-    this.projectsService.reload(this.groupId).subscribe(this.action());
-    this.fetchProjects();
+    this.projectsService.load(this.selectedNamespace).subscribe(this.action(() => this.fetchProjects()));
+  }
+
+  onDelete() {
+    this.loading = true;
+    this.projectsService.delete(this.selectedNamespace).subscribe(this.action(() => {
+      this.selectedNamespace = ""
+      this.projects = []
+      this.filteredProjects = []
+      this.headers = []
+      this.fetchNamespaces();
+    }));
+
   }
 
   onCloneAll() {
     this.loading = true;
-    this.projectsService.clone(this.groupId, this.filteredProjects.map(p => p.id)).subscribe(this.action());
-    this.fetchProjects();
+    this.projectsService.clone(this.selectedNamespace, this.filteredProjects.map(p => p.id)).subscribe(this.action(() => this.fetchProjects()));
   }
 
   onClone(id: string) {
     this.loading = true;
-    this.projectsService.clone(this.groupId, [id]).subscribe(this.action());
-    this.fetchProjects();
+    this.projectsService.clone(this.selectedNamespace, [id]).subscribe(this.action(() => this.fetchProjects()));
   }
 
   onPull(id: string) {
     this.loading = true;
-    this.projectsService.pull(this.groupId, [id]).subscribe(this.action());
-    this.fetchProjects();
+    this.projectsService.pull(this.selectedNamespace, [id]).subscribe(this.action(() => this.fetchProjects()));
   }
 
   onPullAll() {
     this.loading = true;
-    this.projectsService.pull(this.groupId, this.filteredProjects.map(p => p.id)).subscribe(this.action());
-    this.fetchProjects();
+    this.projectsService.pull(this.selectedNamespace, this.filteredProjects.map(p => p.id)).subscribe(this.action(() => this.fetchProjects()));
   }
 
   onStatus(id: string) {
     this.loading = true;
-    this.projectsService.status(this.groupId, [id]).subscribe(this.action());
-    this.fetchProjects();
+    this.projectsService.status(this.selectedNamespace, [id]).subscribe(this.action(() => this.fetchProjects()));
   }
 
   onStatusAll() {
     this.loading = true;
-    this.projectsService.status(this.groupId, this.filteredProjects.map(p => p.id)).subscribe(this.action());
-    this.fetchProjects();
+    this.projectsService.status(this.selectedNamespace, this.filteredProjects.map(p => p.id)).subscribe(this.action(() => this.fetchProjects()));
   }
 
   onSearch() {
     this.loading = true;
-    this.projectsService.search(this.groupId, this.searchInput, this.filteredProjects.map(p => p.id))
+    this.projectsService.search(this.selectedNamespace, this.searchInput, this.filteredProjects.map(p => p.id))
+      .subscribe(this.action((res: any) => { this.fetchSearchResults() }));
+  }
+
+  onSearchResult(result: string) {
+    this.loading = true;
+    this.projectsService.getSearchResult(this.selectedNamespace, result)
       .subscribe(this.action((res: any) => { this.searchResult = res }));
   }
+
 
   onBumpDependencyAll() {
     this.bumpDependencyInput.ids = this.filteredProjects.map(p => p.id)
@@ -161,13 +201,13 @@ export class ProjectsComponent implements OnInit {
       return
     }
     this.loading = true;
-    this.projectsService.createBranch(this.groupId, branch, ids).subscribe(
+    this.projectsService.createBranch(this.selectedNamespace, branch, ids).subscribe(
       this.action(() => {
-        this.projectsService.bumpDependency(this.groupId, dependency, version, ids).subscribe(
+        this.projectsService.bumpDependency(this.selectedNamespace, dependency, version, ids).subscribe(
           this.action(() => {
-            this.projectsService.commit(this.groupId, message, ids).subscribe(
+            this.projectsService.commit(this.selectedNamespace, message, ids).subscribe(
               this.action(() => {
-                this.projectsService.push(this.groupId, ids).subscribe(this.action())
+                this.projectsService.push(this.selectedNamespace, ids).subscribe(this.action())
               })
             )
           })
@@ -192,12 +232,22 @@ export class ProjectsComponent implements OnInit {
     };
   }
 
+  private fetchNamespaces() {
+    this.projectsService.getNamespaces().subscribe(res => {
+      this.namespaces = res;
+    });
+  }
+
+  private fetchSearchResults() {
+    this.projectsService.getSearchResults(this.selectedNamespace).subscribe(res => this.searchResults = res)
+  }
+
   private fetchProjects() {
-    if (this.groupId === '') {
+    if (this.selectedNamespace === '') {
       return
     }
     this.loading = true;
-    this.projectsService.getProjects(this.groupId)
+    this.projectsService.getProjects(this.selectedNamespace)
       .subscribe(res => {
         this.projects = [];
         this.filteredProjects = [];
