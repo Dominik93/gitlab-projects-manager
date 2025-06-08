@@ -1,0 +1,46 @@
+
+<div class="modal fade" [id]="name" tabindex="-1" role="dialog" aria-labelledby="searchResultsModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="searchResultsModalLabel">Search results</h5>
+        <div class="ml-auto margin-left">
+          <button class="btn btn-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Select result
+          </button>
+          <ul class="dropdown-menu">
+            @for (result of searchResults; track result) {
+            <li><a class="dropdown-item" (click)="onSearchResult(result)">{{result}}</a></li>
+            }
+          </ul>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {{searchResult?.metadata}}
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="row">Location</th>
+              <th scope="row">Identifier</th>
+              <th scope="row">Content</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (hit of searchResult?.hits; track hit.identifier; let idx = $index) {
+            <tr>
+              <td>{{hit.location}}</td>
+              <td>{{hit.identifier}}</td>
+              <td>{{hit.content}}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

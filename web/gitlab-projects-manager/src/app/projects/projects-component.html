@@ -1,14 +1,5 @@
-@if (error.occured) {
-<div class="alert alert-danger" role="alert">
-  Error while executing request: {{error.httpMessage}}. <br>
-  Reason: {{error.message}}.
-</div>
-}
-@if (loading) {
-<div class="progress square">
-  <div class="progress-bar dark" role="progressbar" [style.width.%]="progress" [attr.aria-valuenow]="{progress}" aria-valuemin="0" aria-valuemax="100"></div>
-</div>
-}
+<app-error-status></app-error-status>
+<app-progress-bar></app-progress-bar>
 <div class="card">
   <div class="card-body">
     <div class="row">
@@ -40,18 +31,18 @@
           </button>
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" [class]="{'disabled': loading || !filteredProjects.length }"
-                (click)="onCloneAll()">Clone</a></li>
+                (click)="onClone()">Clone</a></li>
             <li><a class="dropdown-item" [class]="{'disabled': loading || !filteredProjects.length }"
-                (click)="onPullAll()">Pull</a></li>
+                (click)="onPull()">Pull</a></li>
             <li><a class="dropdown-item" [class]="{'disabled': loading || !filteredProjects.length }"
-                (click)="onStatusAll()">Status</a></li>
+                (click)="onStatus()">Status</a></li>
           </ul>
           <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#searchModal"
             [disabled]="loading || !filteredProjects.length">Search</button>
           <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#searchResultsModal"
-            [disabled]="loading || !searchResults.length">Search results</button>
+            [disabled]="loading || !containsSearchResults">Search results</button>
           <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#bumpDependencyModal"
-            (click)="onBumpDependencyAll()" [disabled]="loading || !filteredProjects.length">Bump Dependency</button>
+            [disabled]="loading || !filteredProjects.length">Bump Dependency</button>
         </div>
       </div>
     </div>
@@ -87,13 +78,11 @@
           }
           <td>
             <div class="float-right margin-for-each">
-              <button type="button" class="btn btn-dark" (click)="onPull(project.id)" [disabled]="loading">Pull</button>
-              <button type="button" class="btn btn-dark" (click)="onClone(project.id)"
-                [disabled]="loading">Clone</button>
-              <button type="button" class="btn btn-dark" (click)="onStatus(project.id)"
-                [disabled]="loading">Status</button>
+              <button type="button" class="btn btn-dark" (click)="projectId = project.id; onPull()" [disabled]="loading">Pull</button>
+              <button type="button" class="btn btn-dark" (click)="projectId = project.id; onClone()"[disabled]="loading">Clone</button>
+              <button type="button" class="btn btn-dark" (click)="projectId = project.id; onStatus()" [disabled]="loading">Status</button>
               <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#bumpDependencyModal"
-                (click)="onBumpDependency(project.id)" [disabled]="loading">Bump dependency</button>
+                (click)="projectId = project.id" [disabled]="loading">Bump dependency</button>
             </div>
           </td>
         </tr>
@@ -103,175 +92,7 @@
   </div>
 </div>
 
-<div class="modal fade" id="addNamespaceModal" tabindex="-1" role="dialog" aria-labelledby="addNamespaceModalLabel"
-  aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="addNamespaceModalLabel">Add namespace</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body search-form">
-        <div class="form-group row">
-          <div class="col-10">
-            <input type="text" [(ngModel)]="addNamespaceInput.name" class="form-control" id="nameInput"
-              placeholder="Name">
-          </div>
-        </div>
-        <div class="form-group row">
-          <div class="col-10">
-            <input type="text" [(ngModel)]="addNamespaceInput.group" class="form-control" id="idInput" placeholder="Id">
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-dark" data-bs-dismiss="modal" (click)="onAddNamespace()">Add</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel"
-  aria-hidden="true">
-  <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="searchModalLabel">Search</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body search-form">
-        <div class="form-group row">
-          <div class="col-10">
-            <input type="text" [(ngModel)]="searchInput.name" class="form-control" id="searchNameInput"
-              placeholder="Name">
-          </div>
-        </div>
-        <div class="form-group row">
-          <div class="col-10">
-            <input type="text" [(ngModel)]="searchInput.text" class="form-control" id="searchTextInput"
-              placeholder="Search text">
-          </div>
-          <div class="col-2">
-            <div class="form-check">
-              <input class="form-check-input" [(ngModel)]="searchInput.textRegexp" type="checkbox" id="textRegexp">
-              <label class="form-check-label" for="textRegexp"> Regexp </label>
-            </div>
-          </div>
-        </div>
-        <div class="form-group row">
-          <div class="col-10">
-            <input type="text" [(ngModel)]="searchInput.file" class="form-control" id="searchFileInput"
-              placeholder="Enter coma separeted files">
-          </div>
-          <div class="col-2">
-            <div class="form-check">
-              <input class="form-check-input" [(ngModel)]="searchInput.fileRegexp" type="checkbox" id="fileRegexp">
-              <label class="form-check-label" for="fileRegexp"> Regexp </label>
-            </div>
-          </div>
-        </div>
-        <div class="form-check">
-          <input class="form-check-input" [(ngModel)]="searchInput.showContent" type="checkbox" id="showContent">
-          <label class="form-check-label" for="showContent"> Show content </label>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-dark" data-bs-dismiss="modal" (click)="onSearch()"
-          [disabled]="!searchInput.text">Search</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="bumpDependencyModal" tabindex="-1" role="dialog" aria-labelledby="bumpDependencyModalLabel"
-  aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="bumpDependencyModalLabel">Bump dependency</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body search-form">
-        <div class="form-group row">
-          <div class="col-10">
-            <input type="text" [(ngModel)]="bumpDependencyInput.dependency"
-              (ngModelChange)="onDependencyChanged($event)" class="form-control" id="dependencyInput"
-              placeholder="Dependency (property)">
-          </div>
-        </div>
-        <div class="form-group row">
-          <div class="col-10">
-            <input type="text" [(ngModel)]="bumpDependencyInput.version" (ngModelChange)="onVersionChanged($event)"
-              class="form-control" id="versionInput" placeholder="Version">
-          </div>
-        </div>
-        <div class="form-group row">
-          <div class="col-10">
-            <input type="text" [(ngModel)]="bumpDependencyInput.branch" class="form-control" id="branchInput"
-              placeholder="Branch">
-          </div>
-        </div>
-        <div class="form-group row">
-          <div class="col-10">
-            <input type="text" [(ngModel)]="bumpDependencyInput.message" class="form-control" id="branchInput"
-              placeholder="Message">
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-dark" data-bs-dismiss="modal" (click)="bumpDependency()"
-          [disabled]="!bumpDependencyInput.branch || !bumpDependencyInput.dependency || !bumpDependencyInput.version || !bumpDependencyInput.message">Bump</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="searchResultsModal" tabindex="-1" role="dialog" aria-labelledby="searchResultsModalLabel"
-  aria-hidden="true">
-  <div class="modal-dialog modal-xl" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="searchResultsModalLabel">Search results</h5>
-        <div class="ml-auto margin-left">
-          <button class="btn btn-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Select result
-          </button>
-          <ul class="dropdown-menu">
-            @for (result of searchResults; track result) {
-            <li><a class="dropdown-item" (click)="onSearchResult(result)">{{result}}</a></li>
-            }
-          </ul>
-        </div>
-
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        {{searchResult?.metadata}}
-        <table class="table">
-          <thead>
-            <tr>
-              <th scope="row">Location</th>
-              <th scope="row">Identifier</th>
-              <th scope="row">Content</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (hit of searchResult?.hits; track hit.identifier; let idx = $index) {
-            <tr>
-              <td>{{hit.location}}</td>
-              <td>{{hit.identifier}}</td>
-              <td>{{hit.content}}</td>
-            </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
+<app-maven [name]="'bumpDependencyModal'" [namespace]="selectedNamespace" (bumpDependencyFired)="onBumpDependency($event)"></app-maven>
+<app-search [name]="'searchModal'" [namespace]="selectedNamespace" [projects]="filteredProjectsIds"></app-search>
+<app-search-results [name]="'searchResultsModal'" [namespace]="selectedNamespace" (containsResults)="onContainsResults($event)"></app-search-results>
+<app-add-namespace [name]="'addNamespaceModal'"></app-add-namespace>
