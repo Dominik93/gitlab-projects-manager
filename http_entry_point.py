@@ -111,6 +111,10 @@ async def delete_namespace(name: str):
 async def get_namespace(name: str):
     try:
         projects = get_namespace_projects_entry_point(name)
+        config = read_configuration("config")
+        excluded = config.get_value("project.excluded")
+        included = config.get_value("project.included")
+        projects = filter_projects(projects, excluded, included)
         providers = _get_blocked_providers()
         for project in projects:
             for key in providers:
@@ -212,7 +216,13 @@ async def patch_bump_dependency(name: str, request: BumpDependencyRequest):
 
 
 def _get_projects_filters(ids: list):
-    return [lambda projects: filter_projects(projects, {}, create_id_filter(ids))]
+    config = read_configuration("config")
+    excluded = config.get_value("project.excluded")
+    included = config.get_value("project.included")
+    return [
+        lambda projects: filter_projects(projects, excluded, included),
+        lambda projects: filter_projects(projects, {}, create_id_filter(ids))
+    ]
 
 
 def _get_blocked_providers():
