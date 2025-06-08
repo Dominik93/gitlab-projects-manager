@@ -143,6 +143,7 @@ Result:
 ```json
 [
   {
+    "id": "1",
     "archived": "False",
     "namespace": "company/namespace/modules/sample",
     "ssh": "ssh://git@gitlab.com:2222/company/namespace/modules/sample/sample-api.git",
@@ -150,6 +151,7 @@ Result:
     "name": "sample-api"
   },
   {
+    "id": "2",
     "archived": "False",
     "namespace": "company/namespace/modules/sample",
     "ssh": "ssh://git@gitlab.com:2222/company/namespace/modules/sample/sample-module.git",
@@ -157,6 +159,7 @@ Result:
     "name": "sample-module"
   },
   {
+    "id": "1",
     "archived": "False",
     "namespace": "company/namespace/components",
     "ssh": "ssh://git@gitlab.com:2222/company/namespace/components/sample-component.git",
