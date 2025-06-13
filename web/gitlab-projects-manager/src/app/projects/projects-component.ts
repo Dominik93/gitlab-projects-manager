@@ -58,15 +58,7 @@ export class ProjectsComponent implements OnInit {
   onFilterChange(filter: string, $event: any) {
     this.filters[filter] = $event.target.value;
     this.projects.forEach(p => {
-      let visible = false;
-      for (let key in this.filters) {
-        const value = this.filters[key];
-        const characteristic = p.characteristics.find(c => c.name === key);
-        if (characteristic) {
-          visible = visible || (value === '' || String(characteristic.value).includes(value));
-        }
-      }
-      p.visible = visible;
+      p.visible = this.isVisible(p);
       p.selected = p.selected && p.visible;
     })
   }
@@ -86,21 +78,59 @@ export class ProjectsComponent implements OnInit {
       return;
     }
     this.progressBarService.start();
-    this.projectsService.getProjects(this.selectedNamespace)
-      .subscribe(projects => {
-        this.projects = [];
-        projects.forEach(item => {
-          const characteristics: Characteristic[] = [];
-          for (const key in item) {
-            if (!this.headers.includes(key)) {
-              this.headers.push(key);
-            }
-            characteristics.push({ name: key, value: item[key] });
-          }
-          this.projects.push({ id: item['id'], characteristics: characteristics, selected: false, visible: true });
-        });
-        this.progressBarService.stop();
-      });
+    this.projectsService.getProjects(this.selectedNamespace).subscribe(projects => {
+      this.projects = this.createProjects(projects);
+      this.headers = this.createHeaders(projects);
+      this.projectsService.select(this.projects.filter(p => p.selected).map(p => p.id));
+      this.progressBarService.stop();
+    });
+  }
+
+  private createProjects(projects: { [id: string]: any }[]): Project[] {
+    const previousProjects: { [id: string]: { selected: boolean, visible: boolean }; } = {};
+    this.projects.forEach(p => previousProjects[p.id] = { selected: p.selected, visible: p.visible });
+    return projects.map(item => {
+      const id = item['id'];
+      const previousProject = previousProjects[id];
+      return {
+        id: id,
+        characteristics: this.createCharacteristics(item),
+        selected: previousProject?.selected ?? true,
+        visible: previousProject?.selected ?? true
+      };
+    });
+  }
+
+  private createCharacteristics(item: { [id: string]: any; }) {
+    const characteristics: Characteristic[] = [];
+    for (const key in item) {
+      characteristics.push({ name: key, value: item[key] });
+    }
+    return characteristics;
+  }
+
+  private createHeaders(projects: { [id: string]: any }[]): string[] {
+    const headers: string[] = [];
+    projects.map(item => {
+      for (const key in item) {
+        if (!headers.includes(key)) {
+          headers.push(key);
+        }
+      }
+    });
+    return headers;
+  }
+
+  private isVisible(project: Project) {
+    let visible = false;
+    for (let key in this.filters) {
+      const value = this.filters[key];
+      const characteristic = project.characteristics.find(c => c.name === key);
+      if (characteristic) {
+        visible = visible || (value === '' || String(characteristic.value).includes(value));
+      }
+    }
+    return visible;
   }
 
 }

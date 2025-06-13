@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { ProgressBarService } from './progress-bar-service';
 
 @Component({
@@ -7,7 +7,7 @@ import { ProgressBarService } from './progress-bar-service';
   templateUrl: './progress-bar.html',
   styleUrl: './progress-bar.css'
 })
-export class ProgressBar {
+export class ProgressBar implements OnInit, OnDestroy {
 
   progressBarService: ProgressBarService = inject(ProgressBarService);
 
@@ -47,4 +47,9 @@ export class ProgressBar {
     this.loading = false;
     clearInterval(this.interval);
   }
+
+  ngOnDestroy() {
+    clearInterval(this.interval);
+  }
+  
 }
