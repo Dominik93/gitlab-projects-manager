@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { ProjectsComponent } from './projects/projects-component';
+import { GitlabProjectManager } from './gitlab-project-manager/gitlab-project-manager';
 
 export const routes: Routes = [
 
-  { path: '', component: ProjectsComponent }];
+  { path: '', component: GitlabProjectManager }];

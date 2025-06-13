@@ -10,9 +10,7 @@ export class ErrorStatusService {
 
   private errorSubject: Subject<ErrorStatusData> = new Subject<ErrorStatusData>();
 
-  constructor() { }
-
-  setError(error: ErrorStatusData) {
+  set(error: ErrorStatusData) {
     this.errorSubject.next(error);
   }
 

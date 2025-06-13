@@ -1,8 +1,8 @@
-import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
 import { SearchService } from './search-service';
 import { ProgressBarService } from '../progress-bar/progress-bar-service';
 import { ErrorStatusService } from '../error-status/error-status-service';
-import { SearchResultService } from '../search/search-result-service';
+import { NamespaceService } from '../namespace/namespace-service';
 
 export type SearchResult = {
   metadata: string;
@@ -25,68 +25,57 @@ export class SearchResults {
 
   searchService: SearchService = inject(SearchService);
 
+  namespaceService: NamespaceService = inject(NamespaceService);
+
   progressBarService: ProgressBarService = inject(ProgressBarService);
 
   errorStatusService: ErrorStatusService = inject(ErrorStatusService);
 
-  searchResultService: SearchResultService = inject(SearchResultService);
-
   @Input()
   name: string = ""
 
-  @Output()
-  containsResults = new EventEmitter<boolean>();
-
-  _namespace: string = ""
+  namespace: string = ""
 
   searchResult?: SearchResult;
 
   searchResults: string[] = [];
 
-  @Input()
-  set namespace(namespace: string) {
-    if (!namespace) {
-      return;
-    }
-    this._namespace = namespace;
-    this.fetchSearchResults();
-  }
-
   ngOnInit(): void {
-    this.searchResultService.getNewResult().subscribe(() => this.fetchSearchResults())
+    this.namespaceService.selectedNamespace().subscribe(namespace => {
+      this.namespace = namespace;
+      this.fetchSearchResults();
+    });
+    this.searchService.getNewResult().subscribe(() => this.fetchSearchResults())
   }
 
   onSearchResult(result: string) {
-    this.progressBarService.startLoading()
-    this.searchService.getSearchResult(this._namespace, result).subscribe({
-      next: (res) => {
-        this.progressBarService.stopLoading()
+    this.progressBarService.start()
+    this.searchService.getSearchResult(this.namespace, result).subscribe({
+      next: (searchResult) => {
+        this.progressBarService.stop()
         this.errorStatusService.clear();
-        this.searchResult = res;
+        this.searchResult = searchResult;
       },
-      error: (res: any) => {
-        this.progressBarService.stopLoading()
-        this.errorStatusService.setError({ occured: true, httpMessage: res.message, message: res.error.message });
+      error: (errorResponse: any) => {
+        this.progressBarService.stop()
+        this.errorStatusService.set({ httpMessage: errorResponse.message, message: errorResponse.error.message });
       }
     });
   }
 
   private fetchSearchResults() {
-    this.progressBarService.startLoading()
-    this.searchService.getSearchResults(this._namespace).subscribe(
-      {
-        next: (res) => {
-          this.progressBarService.stopLoading()
-          this.errorStatusService.clear();
-          this.searchResults = res;
-          this.containsResults.emit(this.searchResults.length > 0);
-        },
-        error: (res: any) => {
-          this.progressBarService.stopLoading()
-          this.errorStatusService.setError({ occured: true, httpMessage: res.message, message: res.error.message });
-        }
+    this.progressBarService.start()
+    this.searchService.getSearchResults(this.namespace).subscribe({
+      next: (searchResults) => {
+        this.progressBarService.stop()
+        this.errorStatusService.clear();
+        this.searchResults = searchResults;
+      },
+      error: (errorResponse: any) => {
+        this.progressBarService.stop()
+        this.errorStatusService.set({ httpMessage: errorResponse.message, message: errorResponse.error.message });
       }
-    );
+    });
   }
 
 }

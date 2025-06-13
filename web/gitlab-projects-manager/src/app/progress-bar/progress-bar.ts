@@ -9,7 +9,7 @@ import { ProgressBarService } from './progress-bar-service';
 })
 export class ProgressBar {
 
-  progressBarService: ProgressBarService = inject(ProgressBarService)
+  progressBarService: ProgressBarService = inject(ProgressBarService);
 
   progress: number = 0;
 
@@ -17,9 +17,13 @@ export class ProgressBar {
 
   loading = false;
 
+  period = 500
+
+  step = 5
+
   ngOnInit(): void {
-    this.progressBarService.loading().subscribe(val => {
-      if (val) {
+    this.progressBarService.loading().subscribe(isLoading => {
+      if (isLoading) {
         this.startLoading();
       } else {
         this.stopLoading();
@@ -33,9 +37,9 @@ export class ProgressBar {
       if (this.progress > 100) {
         this.progress = 0;
       } else {
-        this.progress += 5;
+        this.progress += this.step;
       }
-    }, 500)
+    }, this.period)
   }
 
   stopLoading() {

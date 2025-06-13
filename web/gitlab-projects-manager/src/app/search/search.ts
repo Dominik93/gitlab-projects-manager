@@ -1,9 +1,10 @@
-import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ErrorStatusService } from '../error-status/error-status-service';
 import { ProgressBarService } from '../progress-bar/progress-bar-service';
-import { SearchResultService } from './search-result-service';
 import { SearchService } from './search-service';
+import { NamespaceService } from '../namespace/namespace-service';
+import { ProjectsService } from '../projects/projects-service';
 
 export type SearchInput = {
   name?: string,
@@ -23,7 +24,9 @@ export type SearchInput = {
 export class Search {
   searchService: SearchService = inject(SearchService);
 
-  searchResultService: SearchResultService = inject(SearchResultService);
+  namespaceService: NamespaceService = inject(NamespaceService);
+
+  projectsService: ProjectsService = inject(ProjectsService);
 
   progressBarService: ProgressBarService = inject(ProgressBarService);
 
@@ -31,29 +34,33 @@ export class Search {
 
   @Input()
   name: string = ""
-
-  @Input()
+  
   namespace: string = ""
 
-  @Input()
   projects: string[] = []
-
-  @Output()
-  search = new EventEmitter<SearchInput>();
 
   searchInput: SearchInput = {};
 
+  ngOnInit(): void {
+    this.namespaceService.selectedNamespace().subscribe(namespace => {
+      this.namespace = namespace;
+    })
+    this.projectsService.selectedProjects().subscribe(projects => {
+      this.projects = projects;
+    })
+  }
+
   onSearch() {
-    this.progressBarService.startLoading()
+    this.progressBarService.start()
     this.searchService.search(this.namespace, this.searchInput, this.projects).subscribe({
       next: (res) => {
-        this.progressBarService.stopLoading()
+        this.progressBarService.stop()
         this.errorStatusService.clear();
-        this.searchResultService.newResult(res)
+        this.searchService.newResult(res)
       },
-      error: (res: any) => {
-        this.progressBarService.stopLoading()
-        this.errorStatusService.setError({ occured: true, httpMessage: res.message, message: res.error.message });
+      error: (errorResponse: any) => {
+        this.progressBarService.stop()
+        this.errorStatusService.set({ httpMessage: errorResponse.message, message: errorResponse.error.message });
       }
     });
   }

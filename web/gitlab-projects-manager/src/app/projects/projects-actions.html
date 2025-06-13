@@ -1,0 +1,24 @@
+<div class="float-right margin-for-each">
+    <button class="btn btn-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+        [disabled]="loading || !projects.length">
+        Git actions
+    </button>
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item" [class]="{'disabled': loading || !projects.length }"
+                (click)="onClone()">Clone</a></li>
+        <li><a class="dropdown-item" [class]="{'disabled': loading || !projects.length }"
+                (click)="onPull()">Pull</a></li>
+        <li><a class="dropdown-item" [class]="{'disabled': loading || !projects.length }"
+                (click)="onStatus()">Status</a></li>
+    </ul>
+    <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#searchModal"
+        [disabled]="loading || !projects.length">Search</button>
+    <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#searchResultsModal"
+        [disabled]="loading || !projects.length">Search results</button>
+    <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#bumpDependencyModal"
+        [disabled]="loading || !projects.length">Bump Dependency</button>
+</div>
+
+<app-search [name]="'searchModal'"></app-search>
+<app-maven [name]="'bumpDependencyModal'"></app-maven>
+<app-search-results [name]="'searchResultsModal'"></app-search-results>

@@ -1,4 +1,4 @@
-@if (error.occured) {
+@if (error.message) {
 <div class="alert alert-danger" role="alert">
   Error while executing request: {{error.httpMessage}}. <br>
   Reason: {{error.message}}.

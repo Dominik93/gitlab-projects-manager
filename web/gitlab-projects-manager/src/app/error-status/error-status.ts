@@ -2,7 +2,6 @@ import { Component, inject } from '@angular/core';
 import { ErrorStatusService } from './error-status-service';
 
 export type ErrorStatusData = {
-  occured: boolean,
   httpMessage: string,
   message: string
 }
@@ -17,14 +16,13 @@ export function emptyError() { return { occured: false, httpMessage: "", message
 })
 export class ErrorStatus {
 
+  errorStatusService: ErrorStatusService = inject(ErrorStatusService);
+
   error: ErrorStatusData = emptyError();
 
-  errorStatusService: ErrorStatusService = inject(ErrorStatusService)
-
-
   ngOnInit(): void {
-    this.errorStatusService.getError().subscribe(val => {
-      this.error = val
+    this.errorStatusService.getError().subscribe(error => {
+      this.error = error
     })
   }
 }

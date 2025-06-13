@@ -10,6 +10,7 @@ import { ProjectsService } from '../projects/projects-service';
   providedIn: 'root'
 })
 export class MavenService {
+
   projectsService: ProjectsService = inject(ProjectsService);
 
   progressBarService: ProgressBarService = inject(ProgressBarService);
@@ -27,7 +28,7 @@ export class MavenService {
     if (!branch || !dependency || !version || !message || !ids) {
       return
     }
-    this.progressBarService.startLoading();
+    this.progressBarService.start();
     this.gitActionsService.createBranch(namespace, branch, ids).subscribe({
       next: () => {
         this.projectsService.bumpDependency(namespace, dependency, version, ids).subscribe({
@@ -36,31 +37,24 @@ export class MavenService {
               next: () => {
                 this.gitActionsService.push(namespace, ids).subscribe({
                   next: () => {
-                    this.progressBarService.stopLoading()
+                    this.progressBarService.stop()
                     this.errorStatusService.clear();
                   },
-                  error: (res) => {
-                    this.progressBarService.stopLoading()
-                    this.errorStatusService.setError({ occured: true, httpMessage: res.message, message: res.error.message });
-                  }
+                  error: (errorResponse) => this.error(errorResponse)
                 })
               },
-              error: (res) => {
-                this.progressBarService.stopLoading()
-                this.errorStatusService.setError({ occured: true, httpMessage: res.message, message: res.error.message });
-              }
+              error: (errorResponse) => this.error(errorResponse)
             })
           },
-          error: (res) => {
-            this.progressBarService.stopLoading()
-            this.errorStatusService.setError({ occured: true, httpMessage: res.message, message: res.error.message });
-          }
+          error: (errorResponse) => this.error(errorResponse)
         })
       },
-      error: (res) => {
-        this.progressBarService.stopLoading()
-        this.errorStatusService.setError({ occured: true, httpMessage: res.message, message: res.error.message });
-      }
+      error: (errorResponse) => this.error(errorResponse)
     });
+  }
+
+  private error(errorResponse: any) {
+    this.progressBarService.stop();
+    this.errorStatusService.set({ httpMessage: errorResponse.message, message: errorResponse.error.message });
   }
 }

@@ -118,7 +118,8 @@ async def get_namespace(name: str):
         providers = _get_blocked_providers()
         for project in projects:
             for key in providers:
-                del project[key]
+                if key in project:
+                    del project[key]
         return projects
     except Exception as e:
         return _internal_server_error(e)

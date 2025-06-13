@@ -1,0 +1,14 @@
+<div class="margin-for-each">
+    <button class="btn btn-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        Select namespace
+    </button>
+    <ul class="dropdown-menu">
+        @for (namespace of namespaces; track namespace) {
+        <li><a class="dropdown-item" (click)="onSelectNamespace(namespace)">{{namespace}}</a></li>
+        }
+        <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#addNamespaceModal">Add</a></li>
+    </ul>
+    <button type="button" class="btn btn-dark" (click)="onDelete()"
+        [disabled]="loading || !selectedNamespace">Delete</button>
+</div>
+<app-add-namespace [name]="'addNamespaceModal'"></app-add-namespace>

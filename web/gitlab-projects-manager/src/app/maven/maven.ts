@@ -1,6 +1,8 @@
-import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MavenService } from './maven-service';
+import { NamespaceService } from '../namespace/namespace-service';
+import { ProjectsService } from '../projects/projects-service';
 
 export type BumpDependencyInput = {
   dependency?: string,
@@ -19,16 +21,23 @@ export class Maven {
 
   mavenService: MavenService = inject(MavenService);
 
+  projectsService: ProjectsService = inject(ProjectsService);
+
+  namespaceService: NamespaceService = inject(NamespaceService);
+
   @Input()
   name: string = ""
 
-  @Input()
-  namespace: string = ""
-
-  @Output()
-  bumpDependencyFired = new EventEmitter<BumpDependencyInput>();
-
   bumpDependencyInput: BumpDependencyInput = {};
+
+  selectedNamespace = "";
+
+  projects: string[] = [];
+
+  ngOnInit(): void {
+    this.namespaceService.selectedNamespace().subscribe(namespace => this.selectedNamespace = namespace);
+    this.projectsService.selectedProjects().subscribe(projects => this.projects = projects);
+  }
 
   onVersionChanged($event: any) {
     this.bumpDependencyInput.branch = `feature/${this.bumpDependencyInput.dependency}_${$event}`;
@@ -40,8 +49,8 @@ export class Maven {
     this.bumpDependencyInput.message = `bump ${$event} ${this.bumpDependencyInput.version}`;
   }
 
-  bumpDependency() {
-    this.bumpDependencyFired.emit(this.bumpDependencyInput);
+  onBumpDependency() {
+    this.mavenService.bumpDependency(this.selectedNamespace, this.projects, this.bumpDependencyInput)
   }
 
 }

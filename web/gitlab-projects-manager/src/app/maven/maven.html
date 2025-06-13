@@ -36,7 +36,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-dark" data-bs-dismiss="modal" (click)="bumpDependency()"
+        <button type="button" class="btn btn-dark" data-bs-dismiss="modal" (click)="onBumpDependency()"
           [disabled]="!bumpDependencyInput.branch || !bumpDependencyInput.dependency || !bumpDependencyInput.version || !bumpDependencyInput.message">Bump</button>
       </div>
     </div>

@@ -8,6 +8,7 @@ export type AddNamespaceInput = {
   name?: string,
   group?: string,
 }
+
 @Component({
   selector: 'app-add-namespace',
   imports: [FormsModule],
@@ -28,16 +29,16 @@ export class AddNamespace {
   addNamespaceInput: AddNamespaceInput = {};
 
   onAddNamespace() {
-    this.progressBarService.startLoading()
+    this.progressBarService.start()
     this.namespaceService.addNamespace(this.addNamespaceInput).subscribe({
       next: () => {
-        this.progressBarService.stopLoading()
+        this.progressBarService.stop()
         this.errorStatusService.clear();
-        this.namespaceService.added()
+        this.namespaceService.add()
       },
-      error: (res: any) => {
-        this.progressBarService.stopLoading()
-        this.errorStatusService.setError({ occured: true, httpMessage: res.message, message: res.error.message });
+      error: (errorResponse: any) => {
+        this.progressBarService.stop()
+        this.errorStatusService.set({ httpMessage: errorResponse.message, message: errorResponse.error.message });
       }
     });
   }

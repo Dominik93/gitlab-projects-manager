@@ -12,11 +12,11 @@ export class ProgressBarService {
 
   constructor() { }
   
-  startLoading() {
+  start() {
     this.loadingSubject.next(true);
   }
 
-  stopLoading() {
+  stop() {
     this.loadingSubject.next(false);
   }
   
