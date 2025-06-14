@@ -15,6 +15,13 @@ def read_configuration(name: str, factory_provider=lambda x: Config(x), use_cach
         return config
 
 
+def save_configuration(name: str, content: str):
+    global __cached_configs
+    with open(name + ".json", 'w', encoding="utf-8") as file:
+        file.write(content)
+        __cached_configs = {}
+
+
 class Config:
 
     def __init__(self, config: dict):

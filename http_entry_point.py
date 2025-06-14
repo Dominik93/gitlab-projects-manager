@@ -1,13 +1,15 @@
+import json
 import traceback
 
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_camelcase import CamelModel
+from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.staticfiles import StaticFiles
 
-from commons.configuration_reader import read_configuration
+from commons.configuration_reader import read_configuration, save_configuration
 from commons.countable_processor import ExceptionStrategy
 from commons.logger import get_logger
 from commons.optional import of
@@ -81,6 +83,22 @@ def get_app_angular():
     with open('static/index.html', 'r') as file_index:
         html_content = file_index.read()
     return HTMLResponse(html_content, status_code=200)
+
+
+@app.get("/config", tags=['config'], operation_id="get_config")
+async def get_configs():
+    try:
+        return read_configuration("config", lambda x: x)
+    except Exception as e:
+        return _internal_server_error(e)
+
+
+@app.post("/config", tags=['config'], operation_id="save_config")
+async def save_config(request: Request):
+    try:
+        save_configuration("config", json.dumps(await request.json(), indent=2))
+    except Exception as e:
+        return _internal_server_error(e)
 
 
 @app.get("/namespace", tags=['namespace'], operation_id="get_namespaces")

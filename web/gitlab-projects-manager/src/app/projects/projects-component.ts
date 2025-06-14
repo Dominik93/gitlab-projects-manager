@@ -4,9 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ProgressBarService } from '../progress-bar/progress-bar-service';
 import { ErrorStatusService } from '../error-status/error-status-service';
 import { NamespaceService } from '../namespace/namespace-service';
-import { Namespace } from "../namespace/namespace";
 import { VisiblePipe } from "./visible-pipe";
-import { ProjectsActions } from "./projects-actions";
 
 export type Project = {
   id: string,
@@ -22,7 +20,7 @@ export type Characteristic = {
 
 @Component({
   selector: 'app-projects-component',
-  imports: [FormsModule, Namespace, VisiblePipe, ProjectsActions],
+  imports: [FormsModule, VisiblePipe],
   templateUrl: './projects-component.html',
   styleUrl: './projects-component.css'
 })
@@ -78,11 +76,17 @@ export class ProjectsComponent implements OnInit {
       return;
     }
     this.progressBarService.start();
-    this.projectsService.getProjects(this.selectedNamespace).subscribe(projects => {
-      this.projects = this.createProjects(projects);
-      this.headers = this.createHeaders(projects);
-      this.projectsService.select(this.projects.filter(p => p.selected).map(p => p.id));
-      this.progressBarService.stop();
+    this.projectsService.getProjects(this.selectedNamespace).subscribe({
+      next: (projects) => {
+        this.projects = this.createProjects(projects);
+        this.headers = this.createHeaders(projects);
+        this.projectsService.select(this.projects.filter(p => p.selected).map(p => p.id));
+        this.progressBarService.stop();
+      },
+      error: (errorResponse: any) => {
+        this.progressBarService.stop()
+        this.errorStatusService.set({ httpMessage: errorResponse.message, message: errorResponse.error.message });
+      }
     });
   }
 

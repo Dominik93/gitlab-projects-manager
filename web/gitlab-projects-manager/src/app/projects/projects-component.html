@@ -1,23 +1,6 @@
 <div class="card">
   <div class="card-body">
     <div class="row">
-      <div class="col col-2">
-        <input type="text" [(ngModel)]="selectedNamespace" class="form-control" id="namespaceInput"
-          placeholder="Selected namespace" disabled="true">
-      </div>
-      <div class="col">
-        <app-namespace></app-namespace>
-      </div>
-      <div class="col">
-        <app-projects-actions></app-projects-actions>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="card">
-  <div class="card-body">
-    <div class="row">
       @for (header of headers; track header) {
       <div class="col">
         <input type="text" id="filterInput" class="form-control" (change)="onFilterChange(header, $event)"

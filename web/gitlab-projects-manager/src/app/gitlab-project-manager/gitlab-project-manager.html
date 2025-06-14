@@ -1,3 +1,22 @@
 <app-error-status></app-error-status>
 <app-progress-bar></app-progress-bar>
+
+<div class="card">
+  <div class="card-body">
+    <div class="row">
+      <div class="col col-3" style="display: flex;">
+        <app-config></app-config>
+        <input type="text" [ngModel]="selectedNamespace" class="form-control" id="namespaceInput"
+          placeholder="Selected namespace" disabled="true">
+      </div>
+      <div class="col">
+        <app-namespace></app-namespace>
+      </div>
+      <div class="col">
+        <app-projects-actions></app-projects-actions>
+      </div>
+    </div>
+  </div>
+</div>
+
 <app-projects-component></app-projects-component>
