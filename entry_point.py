@@ -1,6 +1,6 @@
 import os
 
-from commons.configuration_reader import read_configuration
+from commons.configuration_manager import read_configuration
 from commons.countable_processor import CountableProcessor, ExceptionStrategy
 from commons.logger import get_logger
 from commons.store import create_store, Storage

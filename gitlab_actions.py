@@ -1,4 +1,4 @@
-from commons.configuration_reader import read_configuration
+from commons.configuration_manager import read_configuration
 from commons.countable_processor import CountableProcessor
 from gitlab_accessor import GitlabAccessor
 from providers.providers_registry import providers_registry

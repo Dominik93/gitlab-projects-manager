@@ -1,6 +1,6 @@
 import argparse
 
-from commons.configuration_reader import read_configuration
+from commons.configuration_manager import read_configuration
 from commons.countable_processor import ExceptionStrategy
 from commons.csv_writer import write
 from commons.optional import of

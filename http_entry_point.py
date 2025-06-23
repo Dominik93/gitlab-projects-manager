@@ -1,7 +1,7 @@
 import json
 import traceback
-
 import uvicorn
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_camelcase import CamelModel
@@ -9,10 +9,11 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.staticfiles import StaticFiles
 
-from commons.configuration_reader import read_configuration, save_configuration
+from commons.configuration_manager import read_configuration, save_configuration
 from commons.countable_processor import ExceptionStrategy
 from commons.logger import get_logger
 from commons.optional import of
+
 from entry_point import load_namespace_entry_point, pull_entry_point, clone_entry_point, \
     status_entry_point, \
     search_entry_point, create_branch_entry_point, bump_dependency_entry_point, push_entry_point, commit_entry_point, \
@@ -86,7 +87,7 @@ def get_app_angular():
 
 
 @app.get("/config", tags=['config'], operation_id="get_config")
-async def get_configs():
+async def get_config():
     try:
         return read_configuration("config", lambda x: x)
     except Exception as e:
