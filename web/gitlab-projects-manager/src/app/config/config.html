@@ -1,3 +1,4 @@
-<button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#configModal">Config</button>
+<button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#configModal" 
+ [class]="{'disabled': loading }">Config</button>
 
 <app-edit-config [name]="'configModal'"></app-edit-config>
