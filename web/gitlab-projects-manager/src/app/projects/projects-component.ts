@@ -100,7 +100,7 @@ export class ProjectsComponent implements OnInit {
         id: id,
         characteristics: this.createCharacteristics(item),
         selected: previousProject?.selected ?? true,
-        visible: previousProject?.selected ?? true
+        visible: previousProject?.visible ?? true
       };
     });
   }
