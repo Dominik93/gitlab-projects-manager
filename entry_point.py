@@ -2,12 +2,16 @@ import os
 
 from commons.configuration_manager import read_configuration
 from commons.countable_processor import CountableProcessor, ExceptionStrategy
+from commons.lists import partition, flat
 from commons.logger import get_logger
 from commons.store import create_store, Storage
+from commons.executor import AsyncExecutor
 from git_actions import pull, clone, status, push, create_branch, commit
 from gitlab_actions import process
 from maven_actions import bump_dependency
 from search import search, SearchConfiguration
+
+PARTITION_SIZE = 50
 
 logger = get_logger("EntryPoint")
 
@@ -46,6 +50,14 @@ def pull_entry_point(name: str, project_filters: list, exception_strategy: Excep
     projects = get_namespace_projects_entry_point(name)
     projects = _filter_projects(project_filters, projects)
     logger.info("pull", f"pull projects: {list(map(lambda project: project['id'], projects))}")
+    async_executor = AsyncExecutor()
+    for items in partition(projects, PARTITION_SIZE):
+        async_executor.add(_pull_entry_point, [items, config_directory, default_branch, exception_strategy])
+    async_executor.execute()
+
+
+def _pull_entry_point(projects: list, config_directory: str, default_branch: str,
+                      exception_strategy: ExceptionStrategy):
     CountableProcessor(projects).run(lambda project: pull(config_directory, default_branch, project),
                                      exception_strategy=exception_strategy)
 
@@ -76,6 +88,14 @@ def clone_entry_point(name: str, project_filters: list, exception_strategy: Exce
     projects = get_namespace_projects_entry_point(name)
     projects = _filter_projects(project_filters, projects)
     logger.info("clone", f"clone projects: {list(map(lambda project: project['id'], projects))}")
+
+    async_executor = AsyncExecutor()
+    for items in partition(projects, PARTITION_SIZE):
+        async_executor.add(_clone_entry_point, [items, config_directory, exception_strategy])
+    async_executor.execute()
+
+
+def _clone_entry_point(projects: list, config_directory: str, exception_strategy: ExceptionStrategy):
     CountableProcessor(projects).run(lambda project: clone(config_directory, project),
                                      exception_strategy=exception_strategy)
 
@@ -88,8 +108,12 @@ def status_entry_point(name: str, project_filters: list, exception_strategy: Exc
     group_id = get_namespace_id_entry_point(name)
     filtered_projects = _filter_projects(project_filters, projects)
     logger.info("status", f"check status of projects: {list(map(lambda project: project['id'], filtered_projects))}")
-    processed_projects = CountableProcessor(filtered_projects).run(lambda project: status(config_directory, project),
-                                                                   exception_strategy=exception_strategy)
+
+    async_executor = AsyncExecutor()
+    for items in partition(projects, PARTITION_SIZE):
+        async_executor.add(_status_entry_point, [items, config_directory, exception_strategy])
+    processed_projects = flat(async_executor.execute())
+
     for project in projects:
         for processed_project in processed_projects:
             if project["id"] == processed_project["id"]:
@@ -97,6 +121,11 @@ def status_entry_point(name: str, project_filters: list, exception_strategy: Exc
                 project["local_changes"] = processed_project["local_changes"]
     store.store({"id": group_id, "projects": projects}, f'resources/namespace/{name}')
     return processed_projects
+
+
+def _status_entry_point(projects: list, config_directory: str, exception_strategy: ExceptionStrategy):
+    return CountableProcessor(projects).run(lambda project: status(config_directory, project),
+                                            exception_strategy=exception_strategy)
 
 
 def get_search_results_entry_point(name: str):
