@@ -12,6 +12,9 @@ from entry_point import load_namespace_entry_point, pull_entry_point, status_ent
 from project_filter import filter_projects, create_name_filter
 from search import Predicate, SearchConfiguration
 
+# import providers, do not remove
+from providers_implementation import *
+
 store = create_store(Storage.JSON)
 config = read_configuration("config")
 group_id = config.get_value("project.group_id")

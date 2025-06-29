@@ -23,6 +23,8 @@ from entry_point import load_namespace_entry_point, pull_entry_point, clone_entr
 from project_filter import filter_projects, create_id_filter
 from search import SearchConfiguration, text_predicate, regexp_predicate
 
+# import providers, do not remove
+from providers_implementation import *
 
 class Filter(CamelModel):
     projects_ids: list = []

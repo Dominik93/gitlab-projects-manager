@@ -62,7 +62,8 @@ export class ProjectsComponent implements OnInit {
   }
 
   onSelectAll($event: any) {
-    this.projects.forEach(p => p.selected = $event.target.checked);
+    this.projects.forEach(p => p.selected = false);
+    this.projects.filter(p => p.visible).forEach(p => p.selected = $event.target.checked);
     this.projectsService.select(this.projects.filter(p => p.selected).map(p => p.id));
   }
 

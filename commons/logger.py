@@ -71,7 +71,7 @@ class Logger:
         pass
 
     def format(self, level: Level, method_name: str, log_format: str, content_provider=lambda x: x):
-        return f'{level.name}:{self._now()}:{self._get_name(method_name)}:{content_provider(log_format)}'
+        return f'{os.getpid()}:{level.name}:{self._now()}:{self._get_name(method_name)}:{content_provider(log_format)}'
 
     def _now(self):
         return datetime.now().strftime(self.timestamp_format)

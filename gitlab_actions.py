@@ -4,10 +4,6 @@ from gitlab_accessor import GitlabAccessor
 from providers.providers_registry import providers_registry
 
 
-# import providers, do not remove
-from providers_implementation import *
-
-
 def _process_project(providers: list[str], gitlab_project: dict) -> dict:
     project = {}
     for provider in providers:

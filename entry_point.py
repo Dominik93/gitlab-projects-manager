@@ -11,6 +11,7 @@ from gitlab_actions import process
 from maven_actions import bump_dependency
 from search import search, SearchConfiguration
 
+
 PARTITION_SIZE = 50
 
 logger = get_logger("EntryPoint")
