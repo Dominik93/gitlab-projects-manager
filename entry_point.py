@@ -110,8 +110,8 @@ def status_entry_point(name: str, project_filters: list, exception_strategy: Exc
     logger.info("status", f"check status of projects: {list(map(lambda project: project['id'], filtered_projects))}")
 
     async_executor = AsyncExecutor()
-    for items in partition(projects, PARTITION_SIZE):
-        async_executor.add(_status_entry_point, [filtered_projects, config_directory, exception_strategy])
+    for items in partition(filtered_projects, PARTITION_SIZE):
+        async_executor.add(_status_entry_point, [items, config_directory, exception_strategy])
     processed_projects = flat(async_executor.execute())
 
     for project in projects:
