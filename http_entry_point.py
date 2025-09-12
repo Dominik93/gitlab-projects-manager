@@ -15,7 +15,7 @@ from commons.logger import get_logger
 from commons.optional import of
 
 from entry_point import load_namespace_entry_point, pull_entry_point, clone_entry_point, \
-    status_entry_point, \
+    status_entry_point, checkout_entry_point, rollback_entry_point, \
     search_entry_point, create_branch_entry_point, bump_dependency_entry_point, push_entry_point, commit_entry_point, \
     delete_namespace_entry_point, get_namespaces_entry_point, get_namespace_projects_entry_point, \
     get_search_results_entry_point, \
@@ -25,6 +25,7 @@ from search import SearchConfiguration, text_predicate, regexp_predicate
 
 # import providers, do not remove
 from providers_implementation import *
+
 
 class Filter(CamelModel):
     projects_ids: list = []
@@ -159,6 +160,22 @@ async def post_commit(name: str, request: CommitReqeust):
     try:
         commit_entry_point(name, request.message, _get_projects_filters(request.projects_ids),
                            ExceptionStrategy.RAISE)
+    except Exception as e:
+        return _internal_server_error(e)
+
+
+@app.post("/namespace/{name}/rollback", tags=['git'], operation_id="rollback")
+async def post_rollback(name: str, request: Filter):
+    try:
+        rollback_entry_point(name, _get_projects_filters(request.projects_ids), ExceptionStrategy.RAISE)
+    except Exception as e:
+        return _internal_server_error(e)
+
+
+@app.post("/namespace/{name}/checkout", tags=['git'], operation_id="checkout")
+async def post_checkout(name: str, request: Filter):
+    try:
+        checkout_entry_point(name, _get_projects_filters(request.projects_ids), ExceptionStrategy.RAISE)
     except Exception as e:
         return _internal_server_error(e)
 

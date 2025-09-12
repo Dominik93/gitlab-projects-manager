@@ -10,6 +10,8 @@
                 (click)="onPull()">Pull</a></li>
         <li><a class="dropdown-item" [class]="{'disabled': loading || !projects.length }"
                 (click)="onStatus()">Status</a></li>
+        <li><a class="dropdown-item" [class]="{'disabled': loading || !projects.length }"
+               (click)="onReset()">Reset</a></li>
     </ul>
     <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#searchModal"
         [disabled]="loading || !projects.length">Search</button>

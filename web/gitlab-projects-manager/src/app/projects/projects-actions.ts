@@ -37,7 +37,7 @@ export class ProjectsActions {
     this.namespaceService.selectedNamespace().subscribe(namespace => this.selectedNamespace = namespace);
     this.projectsService.selectedProjects().subscribe(projects => this.projects = projects);
   }
-  
+
   onLoad() {
     this.progressBarService.start();
     this.namespaceService.load(this.selectedNamespace).subscribe(this.action(() => this.projectsService.reload()));
@@ -46,6 +46,18 @@ export class ProjectsActions {
   onClone() {
     this.progressBarService.start();
     this.gitActionsService.clone(this.selectedNamespace, this.projects).subscribe(this.action(() => this.projectsService.reload()));
+  }
+
+  onReset() {
+    this.progressBarService.start();
+    this.gitActionsService.rollback(this.selectedNamespace, this.projects).subscribe({
+      next: () => {
+        this.gitActionsService.checkout(this.selectedNamespace, this.projects).subscribe(
+          this.action(() => this.projectsService.reload())
+        )
+      },
+      error: (errorResponse) => this.error(errorResponse)
+    });
   }
 
   onPull() {
@@ -67,10 +79,13 @@ export class ProjectsActions {
           nextCallback(res);
         }
       },
-      error: (errorResponse: any) => {
-        this.progressBarService.stop();
-        this.errorStatusService.set({ httpMessage: errorResponse.message, message: errorResponse.error.message });
-      }
+      error: (errorResponse: any) => this.error(errorResponse)
     };
   }
+
+  private error(errorResponse: any) {
+    this.progressBarService.stop();
+    this.errorStatusService.set({ httpMessage: errorResponse.message, message: errorResponse.error.message });
+  }
+
 }

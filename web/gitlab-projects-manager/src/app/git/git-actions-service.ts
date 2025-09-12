@@ -36,6 +36,16 @@ export class GitActionsService {
     return this.http.post(`${Service.baseUrl()}/namespace/${namespace}/status`, request);
   }
 
+  rollback(namespace: string, ids?: string[]): Observable<any> {
+    const request = { "projectsIds": ids }
+    return this.http.post(`${Service.baseUrl()}/namespace/${namespace}/rollback`, request);
+  }
+
+  checkout(namespace: string, ids?: string[]): Observable<any> {
+    const request = { "projectsIds": ids }
+    return this.http.post(`${Service.baseUrl()}/namespace/${namespace}/checkout`, request);
+  }
+
   createBranch(namespace: string, branch: string, ids?: string[]): Observable<any> {
     const request = { "projectsIds": ids, "branch": branch }
     return this.http.post(`${Service.baseUrl()}/namespace/${namespace}/branch`, request);

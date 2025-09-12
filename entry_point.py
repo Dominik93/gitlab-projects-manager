@@ -6,11 +6,10 @@ from commons.lists import partition, flat
 from commons.logger import get_logger
 from commons.store import create_store, Storage
 from commons.executor import AsyncExecutor
-from git_actions import pull, clone, status, push, create_branch, commit
+from git_actions import pull, clone, status, push, create_branch, commit, checkout, rollback
 from gitlab_actions import process
 from maven_actions import bump_dependency
 from search import search, SearchConfiguration
-
 
 PARTITION_SIZE = 50
 
@@ -63,6 +62,27 @@ def _pull_entry_point(projects: list, config_directory: str, default_branch: str
                                      exception_strategy=exception_strategy)
 
 
+def checkout_entry_point(name: str, project_filters: list, exception_strategy: ExceptionStrategy):
+    config = read_configuration("config")
+    config_directory = config.get_value("management.directory")
+    default_branch = config.get_value("git.default_branch")
+    projects = get_namespace_projects_entry_point(name)
+    projects = _filter_projects(project_filters, projects)
+    logger.info("checkout", f"checkout projects: {list(map(lambda project: project['id'], projects))}")
+    CountableProcessor(projects).run(lambda project: checkout(config_directory, default_branch, project),
+                                     exception_strategy=exception_strategy)
+
+
+def rollback_entry_point(name: str, project_filters: list, exception_strategy: ExceptionStrategy):
+    config = read_configuration("config")
+    config_directory = config.get_value("management.directory")
+    projects = get_namespace_projects_entry_point(name)
+    projects = _filter_projects(project_filters, projects)
+    logger.info("rollback", f"rollback projects: {list(map(lambda project: project['id'], projects))}")
+    CountableProcessor(projects).run(lambda project: rollback(config_directory, project),
+                                     exception_strategy=exception_strategy)
+
+
 def commit_entry_point(name: str, message: str, project_filters: list, exception_strategy: ExceptionStrategy):
     config = read_configuration("config")
     config_directory = config.get_value("management.directory")
@@ -86,14 +106,23 @@ def push_entry_point(name: str, project_filters: list, exception_strategy: Excep
 def clone_entry_point(name: str, project_filters: list, exception_strategy: ExceptionStrategy):
     config = read_configuration("config")
     config_directory = config.get_value("management.directory")
+    store = create_store(Storage.JSON)
     projects = get_namespace_projects_entry_point(name)
-    projects = _filter_projects(project_filters, projects)
-    logger.info("clone", f"clone projects: {list(map(lambda project: project['id'], projects))}")
+    group_id = get_namespace_id_entry_point(name)
+    filtered_projects = _filter_projects(project_filters, projects)
+    logger.info("clone", f"clone projects: {list(map(lambda project: project['id'], filtered_projects))}")
 
     async_executor = AsyncExecutor()
-    for items in partition(projects, PARTITION_SIZE):
+    for items in partition(filtered_projects, PARTITION_SIZE):
         async_executor.add(_clone_entry_point, [items, config_directory, exception_strategy])
-    async_executor.execute()
+    processed_projects = flat(async_executor.execute())
+
+    for project in projects:
+        for processed_project in processed_projects:
+            if project["id"] == processed_project["id"]:
+                project["cloned"] = processed_project["cloned"]
+    store.store({"id": group_id, "projects": projects}, f'resources/namespace/{name}')
+    return processed_projects
 
 
 def _clone_entry_point(projects: list, config_directory: str, exception_strategy: ExceptionStrategy):

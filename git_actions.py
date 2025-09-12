@@ -21,6 +21,8 @@ def clone(directory: str, project: dict):
     project_directory = f"{directory}/{project['namespace']}/{project['name']}"
     if not os.path.isdir(project_directory):
         _git(f"git clone {project['ssh']} {project_directory}")
+    project['cloned'] = True
+    return project
 
 
 def status(directory: str, project: dict):
@@ -47,6 +49,16 @@ def push(directory: str, project: dict):
 def commit(directory: str, message: str, project: dict):
     project_directory = f"{directory}/{project['namespace']}/{project['name']}"
     _git(f'git -C {project_directory} commit -m "{message}"')
+
+
+def checkout(directory: str, branch: str, project: dict):
+    project_directory = f"{directory}/{project['namespace']}/{project['name']}"
+    _git(f'git -C {project_directory} checkout {branch}')
+
+
+def rollback(directory: str, project: dict):
+    project_directory = f"{directory}/{project['namespace']}/{project['name']}"
+    _git(f'git -C {project_directory} reset --hard')
 
 
 def pull(directory: str, default_branch: str, project: dict):
