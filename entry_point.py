@@ -126,7 +126,7 @@ def clone_entry_point(name: str, project_filters: list, exception_strategy: Exce
 
 
 def _clone_entry_point(projects: list, config_directory: str, exception_strategy: ExceptionStrategy):
-    CountableProcessor(projects).run(lambda project: clone(config_directory, project),
+    return CountableProcessor(projects).run(lambda project: clone(config_directory, project),
                                      exception_strategy=exception_strategy)
 
 
