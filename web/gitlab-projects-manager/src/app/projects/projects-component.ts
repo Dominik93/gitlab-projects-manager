@@ -6,6 +6,11 @@ import { ErrorStatusService } from '../error-status/error-status-service';
 import { NamespaceService } from '../namespace/namespace-service';
 import { VisiblePipe } from "./visible-pipe";
 
+export type Sort = {
+  name: string,
+  direction: 'ASC' | 'DESC'
+}
+
 export type Project = {
   id: string,
   characteristics: Characteristic[],
@@ -33,6 +38,8 @@ export class ProjectsComponent implements OnInit {
   progressBarService: ProgressBarService = inject(ProgressBarService);
 
   errorStatusService: ErrorStatusService = inject(ErrorStatusService);
+
+  sort: Sort = { name: "", direction: "ASC" }
 
   headers: string[] = [];
 
@@ -136,6 +143,26 @@ export class ProjectsComponent implements OnInit {
       }
     }
     return visible;
+  }
+
+  onHeaderClick(header: string) {
+    if (this.sort.name === header) {
+      this.sort.direction = this.sort.direction === 'ASC' ? 'DESC' : 'ASC';
+    } else {
+      this.sort.name = header;
+      this.sort.direction = 'ASC';
+    }
+    this.projects = this.projects.sort((p1, p2) => {
+      const v1 = p1.characteristics.find(c => c.name === this.sort.name)?.value || '';
+      const v2 = p2.characteristics.find(c => c.name === this.sort.name)?.value || '';
+      if (v1 > v2) {
+        return this.sort.direction === 'ASC' ? 1 : -1;
+      }
+      if (v1 < v2) {
+        return this.sort.direction === 'ASC' ? -1 : 1;
+      }
+      return 0;
+    });
   }
 
 }

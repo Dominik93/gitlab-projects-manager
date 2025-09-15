@@ -18,7 +18,7 @@
             </div>
           </th>
           @for (header of headers; track header) {
-          <th scope="col">{{header}}</th>
+          <th scope="col" (click)="onHeaderClick(header)">{{header}}</th>
           }
         </tr>
       </thead>
