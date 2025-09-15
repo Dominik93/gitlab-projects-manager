@@ -149,6 +149,7 @@ def status_entry_point(name: str, project_filters: list, exception_strategy: Exc
             if project["id"] == processed_project["id"]:
                 project["current_branch"] = processed_project["current_branch"]
                 project["local_changes"] = processed_project["local_changes"]
+                project["modified"] = processed_project["modified"]
     store.store({"id": group_id, "projects": projects}, f'resources/namespace/{name}')
     return processed_projects
 
