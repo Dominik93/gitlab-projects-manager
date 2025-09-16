@@ -33,7 +33,7 @@ def status(directory: str, project: dict):
     local_changes = not _is_clear(project_status)
     project['current_branch'] = current_branch
     project['local_changes'] = local_changes
-    project['modified'] = datetime.datetime.now()
+    project['modified'] = str(datetime.datetime.now())
     return project
 
 
