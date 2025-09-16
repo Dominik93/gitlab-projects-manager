@@ -51,4 +51,9 @@ export class GitActionsService {
     return this.http.post(`${Service.baseUrl()}/namespace/${namespace}/branch`, request);
   }
 
+  createMergeRquest(namespace: string, title: string, source: string, ids?: string[]): Observable<any> {
+    const request = { "projectsIds": ids, "title": title, "source": source }
+    return this.http.post(`${Service.baseUrl()}/namespace/${namespace}/create-merge-request`, request);
+  }
+
 }

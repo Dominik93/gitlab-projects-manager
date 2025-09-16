@@ -8,7 +8,7 @@ from commons.store import create_store, Storage
 from entry_point import load_namespace_entry_point, pull_entry_point, status_entry_point, \
     clone_entry_point, \
     search_entry_point, push_entry_point, create_branch_entry_point, bump_dependency_entry_point, \
-    delete_namespace_entry_point
+    delete_namespace_entry_point, create_merge_request_entry_point
 from project_filter import filter_projects, create_name_filter
 from search import Predicate, SearchConfiguration
 
@@ -48,6 +48,9 @@ def command_line_parser():
 
     parser.add_argument("--dependency-name", help='Action: bump-dependency - Dependency name')
     parser.add_argument("--dependency-version", help='Action: bump-dependency - Dependency version')
+
+    parser.add_argument("--title", help='Action: create-merge-request - Title of MR')
+    parser.add_argument("--source", help='Action: create-merge-request - Source branch of MR')
     return parser.parse_args()
 
 
@@ -91,6 +94,11 @@ def _bump_dependency(args):
                                 ExceptionStrategy.PASS)
 
 
+def _create_merge_request(args):
+    create_merge_request_entry_point(group_id, args.title, args.source, _get_projects_filters(args),
+                                     ExceptionStrategy.PASS)
+
+
 def _create_branch(args):
     create_branch_entry_point(group_id, args.branch, _get_projects_filters(args), ExceptionStrategy.PASS)
 
@@ -104,7 +112,8 @@ actions = {
     "push": _push,
     "search": _search,
     "bump-dependency": _bump_dependency,
-    "create-branch": _create_branch
+    "create-branch": _create_branch,
+    "create-merge-request": _create_merge_request
 }
 
 if __name__ == "__main__":

@@ -37,8 +37,13 @@ export class MavenService {
               next: () => {
                 this.gitActionsService.push(namespace, ids).subscribe({
                   next: () => {
-                    this.progressBarService.stop()
-                    this.errorStatusService.clear();
+                    this.gitActionsService.createMergeRquest(namespace, message, branch, ids).subscribe({
+                      next: () => {
+                        this.progressBarService.stop()
+                        this.errorStatusService.clear();
+                      },
+                      error: (errorResponse) => this.error(errorResponse)
+                    })
                   },
                   error: (errorResponse) => this.error(errorResponse)
                 })

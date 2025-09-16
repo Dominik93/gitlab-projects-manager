@@ -7,7 +7,7 @@ from commons.logger import get_logger
 from commons.store import create_store, Storage
 from commons.executor import AsyncExecutor
 from git_actions import pull, clone, status, push, create_branch, commit, checkout, rollback
-from gitlab_actions import process
+from gitlab_actions import process, create_merge_reqeust
 from maven_actions import bump_dependency
 from search import search, SearchConfiguration
 
@@ -127,7 +127,7 @@ def clone_entry_point(name: str, project_filters: list, exception_strategy: Exce
 
 def _clone_entry_point(projects: list, config_directory: str, exception_strategy: ExceptionStrategy):
     return CountableProcessor(projects).run(lambda project: clone(config_directory, project),
-                                     exception_strategy=exception_strategy)
+                                            exception_strategy=exception_strategy)
 
 
 def status_entry_point(name: str, project_filters: list, exception_strategy: ExceptionStrategy):
@@ -201,11 +201,25 @@ def bump_dependency_entry_point(name: str, dependency_name: str, dependency_vers
     config = read_configuration("config")
     directory = config.get_value("management.directory")
     projects = get_namespace_projects_entry_point(name)
-    projects = _filter_projects(project_filters, projects)
+    filtered_projects = _filter_projects(project_filters, projects)
     logger.info("bump_dependency",
-                f"bump {dependency_name} to {dependency_version} in: {list(map(lambda project: project['id'], projects))}")
-    return CountableProcessor(projects).run(
+                f"bump {dependency_name} to {dependency_version} in: "
+                f"{list(map(lambda project: project['id'], filtered_projects))}")
+    return CountableProcessor(filtered_projects).run(
         lambda project: bump_dependency(directory, dependency_name, dependency_version, project),
+        exception_strategy=exception_strategy)
+
+
+def create_merge_request_entry_point(name: str, title: str, source: str, project_filters: list,
+                                     exception_strategy: ExceptionStrategy):
+    projects = get_namespace_projects_entry_point(name)
+    target = read_configuration("git.default_branch")
+    filtered_projects = _filter_projects(project_filters, projects)
+    logger.info("create_merge_request",
+                f"create MR {title} from {source} to {target} in: "
+                f"{list(map(lambda project: project['id'], filtered_projects))}")
+    return CountableProcessor(filtered_projects).run(
+        lambda project: create_merge_reqeust(title, source, target, project),
         exception_strategy=exception_strategy)
 
 

@@ -22,3 +22,9 @@ def process(group_id) -> dict:
     providers = configuration.get_value("providers.loader")
     projects = CountableProcessor(pages).run(lambda x: _process_project(providers, x))
     return {"id": group_id, "projects": projects}
+
+
+def create_merge_reqeust(title: str, source: str, target: str, project: dict):
+    configuration = read_configuration("config")
+    accessor = GitlabAccessor(configuration.get_value("git.url"), configuration.get_value("git.access_token"))
+    accessor.create_merge_request(project["id"], title, source, target)

@@ -18,8 +18,7 @@ from entry_point import load_namespace_entry_point, pull_entry_point, clone_entr
     status_entry_point, checkout_entry_point, rollback_entry_point, \
     search_entry_point, create_branch_entry_point, bump_dependency_entry_point, push_entry_point, commit_entry_point, \
     delete_namespace_entry_point, get_namespaces_entry_point, get_namespace_projects_entry_point, \
-    get_search_results_entry_point, \
-    get_search_result_entry_point
+    get_search_results_entry_point, get_search_result_entry_point, create_merge_request_entry_point
 from project_filter import filter_projects, create_id_filter
 from search import SearchConfiguration, text_predicate, regexp_predicate
 
@@ -55,6 +54,12 @@ class BumpDependencyRequest(CamelModel):
     projects_ids: list = []
     dependency: str
     version: str
+
+
+class CreateMergeRequestRequest(CamelModel):
+    projects_ids: list = []
+    title: str
+    source: str
 
 
 class CreateBranchRequest(CamelModel):
@@ -250,6 +255,15 @@ async def patch_bump_dependency(name: str, request: BumpDependencyRequest):
     try:
         bump_dependency_entry_point(name, request.dependency, request.version,
                                     _get_projects_filters(request.projects_ids), ExceptionStrategy.RAISE)
+    except Exception as e:
+        return _internal_server_error(e)
+
+
+@app.post("/namespace/{name}/create-merge-request", tags=['git'], operation_id="crate_merge_request")
+async def post_create_merge_request_dependency(name: str, request: CreateMergeRequestRequest):
+    try:
+        create_merge_request_entry_point(name, request.title, request.source,
+                                         _get_projects_filters(request.projects_ids), ExceptionStrategy.RAISE)
     except Exception as e:
         return _internal_server_error(e)
 
