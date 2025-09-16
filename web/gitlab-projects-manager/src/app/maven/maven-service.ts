@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { BumpDependencyInput } from './maven';
+import { BumpDependencyInput, Dependency } from './maven';
 import { ErrorStatusService } from '../error-status/error-status-service';
 import { GitActionsService } from '../git/git-actions-service';
 import { ProgressBarService } from '../progress-bar/progress-bar-service';
@@ -21,32 +21,44 @@ export class MavenService {
 
   bumpDependency(namespace: string, projectIds: string[], bumpDependencyInput: BumpDependencyInput) {
     const branch = bumpDependencyInput.branch;
-    const dependency = bumpDependencyInput.dependency;
-    const version = bumpDependencyInput.version;
+    const dependencies = bumpDependencyInput.dependencies;
     const message = bumpDependencyInput.message;
     const ids = projectIds;
-    if (!branch || !dependency || !version || !message || !ids) {
+    if (!branch || !dependencies || !message || !ids) {
       return
     }
     this.progressBarService.start();
     this.gitActionsService.createBranch(namespace, branch, ids).subscribe({
       next: () => {
-        this.projectsService.bumpDependency(namespace, dependency, version, ids).subscribe({
+        this.bumpDependencies(namespace, branch, message, dependencies, ids);
+      },
+      error: (errorResponse) => this.error(errorResponse)
+    });
+  }
+
+  private bumpDependencies(namespace: string, branch: string, message: string, dependencies: Dependency[], ids: string[]) {
+    const dependnecy = dependencies.pop()
+    if (dependnecy) {
+      this.projectsService.bumpDependency(namespace, dependnecy.name, dependnecy.version, ids).subscribe({
+        next: () => {
+          this.bumpDependencies(namespace, branch, message, dependencies, ids);
+        },
+        error: (errorResponse) => this.error(errorResponse)
+      })
+    } else {
+      this.finalizeBumpDependnecies(namespace, branch, message, ids)
+    }
+  }
+
+  private finalizeBumpDependnecies(namespace: string, branch: string, message: string, ids: string[]) {
+    this.gitActionsService.commit(namespace, message, ids).subscribe({
+      next: () => {
+        this.gitActionsService.push(namespace, ids).subscribe({
           next: () => {
-            this.gitActionsService.commit(namespace, message, ids).subscribe({
+            this.gitActionsService.createMergeRquest(namespace, message, branch, ids).subscribe({
               next: () => {
-                this.gitActionsService.push(namespace, ids).subscribe({
-                  next: () => {
-                    this.gitActionsService.createMergeRquest(namespace, message, branch, ids).subscribe({
-                      next: () => {
-                        this.progressBarService.stop()
-                        this.errorStatusService.clear();
-                      },
-                      error: (errorResponse) => this.error(errorResponse)
-                    })
-                  },
-                  error: (errorResponse) => this.error(errorResponse)
-                })
+                this.progressBarService.stop();
+                this.errorStatusService.clear();
               },
               error: (errorResponse) => this.error(errorResponse)
             })
@@ -55,7 +67,7 @@ export class MavenService {
         })
       },
       error: (errorResponse) => this.error(errorResponse)
-    });
+    })
   }
 
   private error(errorResponse: any) {

@@ -4,9 +4,14 @@ import { MavenService } from './maven-service';
 import { NamespaceService } from '../namespace/namespace-service';
 import { ProjectsService } from '../projects/projects-service';
 
+
+export type Dependency = {
+  name: string,
+  version: string
+}
+
 export type BumpDependencyInput = {
-  dependency?: string,
-  version?: string,
+  dependencies?: Dependency[],
   message?: string,
   branch?: string,
 }
@@ -28,7 +33,7 @@ export class Maven {
   @Input()
   name: string = ""
 
-  bumpDependencyInput: BumpDependencyInput = {};
+  bumpDependencyInput: BumpDependencyInput = { dependencies: [] };
 
   selectedNamespace = "";
 
@@ -39,14 +44,26 @@ export class Maven {
     this.projectsService.selectedProjects().subscribe(projects => this.projects = projects);
   }
 
-  onVersionChanged($event: any) {
-    this.bumpDependencyInput.branch = `feature/${this.bumpDependencyInput.dependency}_${$event}`;
-    this.bumpDependencyInput.message = `bump ${this.bumpDependencyInput.dependency} ${$event}`;
+  onAddNewDependency() {
+    this.bumpDependencyInput.dependencies?.push({ name: "", version: "" });
   }
 
-  onDependencyChanged($event: any) {
-    this.bumpDependencyInput.branch = `feature/${$event}_${this.bumpDependencyInput.version}`;
-    this.bumpDependencyInput.message = `bump ${$event} ${this.bumpDependencyInput.version}`;
+  onRemoveDependency() {
+    this.bumpDependencyInput.dependencies?.pop();
+  }
+
+  onVersionChanged($version: any) {
+    if (this.bumpDependencyInput.dependencies?.length == 1) {
+      this.bumpDependencyInput.branch = `feature/${this.bumpDependencyInput.dependencies[0].name}_${$version}`;
+    }
+    this.bumpDependencyInput.message = `bump ${this.bumpDependencyInput.dependencies?.map(dep => dep.name + " " + dep.version).join(", ")}`;
+  }
+
+  onDependencyChanged($dependnecyName: any) {
+    if (this.bumpDependencyInput.dependencies?.length == 1) {
+      this.bumpDependencyInput.branch = `feature/${$dependnecyName}_${this.bumpDependencyInput.dependencies[0].version}`;
+    }
+    this.bumpDependencyInput.message = `bump ${this.bumpDependencyInput.dependencies?.map(dep => dep.name + " " + dep.version).join(", ")}`;
   }
 
   onBumpDependency() {
