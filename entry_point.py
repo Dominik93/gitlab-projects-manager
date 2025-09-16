@@ -212,8 +212,9 @@ def bump_dependency_entry_point(name: str, dependency_name: str, dependency_vers
 
 def create_merge_request_entry_point(name: str, title: str, source: str, project_filters: list,
                                      exception_strategy: ExceptionStrategy):
+    config = read_configuration("config")
+    target = config.get_value("git.default_branch")
     projects = get_namespace_projects_entry_point(name)
-    target = read_configuration("git.default_branch")
     filtered_projects = _filter_projects(project_filters, projects)
     logger.info("create_merge_request",
                 f"create MR {title} from {source} to {target} in: "

@@ -50,6 +50,7 @@ def push(directory: str, project: dict):
 
 def commit(directory: str, message: str, project: dict):
     project_directory = f"{directory}/{project['namespace']}/{project['name']}"
+    _git(f'git -C {project_directory} add .')
     _git(f'git -C {project_directory} commit -m "{message}"')
 
 

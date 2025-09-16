@@ -14,4 +14,4 @@ def _maven(command):
 def bump_dependency(directory, dependency: str, version: str, project: dict):
     project_directory = f"{directory}/{project['namespace']}/{project['name']}"
     if os.path.isdir(project_directory):
-        _maven(f"mvn -f {project_directory} versions:update-property -Dproperty={dependency}.version -DnewVersion={version}")
+        _maven(f"mvn -f {project_directory} versions:update-property -DgenerateBackupPoms=false -Dproperty={dependency}.version -DnewVersion={version}")
