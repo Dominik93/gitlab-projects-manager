@@ -18,7 +18,15 @@
             </div>
           </th>
           @for (header of headers; track header) {
-          <th scope="col" (click)="onHeaderClick(header)">{{header}}</th>
+          <th scope="col">
+            <span (click)="onHeaderClick(header)">{{header}}</span>
+            @if (sort.name == header && sort.direction === 'DESC') {
+            <img src="arrow-up.svg" alt="Up">
+            }
+            @if (sort.name == header && sort.direction === 'ASC') {
+            <img src="arrow-down.svg" alt="Down">
+            }
+          </th>
           }
         </tr>
       </thead>
