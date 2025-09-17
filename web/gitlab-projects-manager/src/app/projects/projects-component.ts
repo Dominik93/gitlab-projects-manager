@@ -39,6 +39,16 @@ export class ProjectsComponent implements OnInit {
 
   errorStatusService: ErrorStatusService = inject(ErrorStatusService);
 
+  operators: { [id: string]: any; } = {
+    "": (characteristicValue: any, value: any): boolean => this.contains(characteristicValue, value),
+    "equals": (characteristicValue: any, value: any): boolean => this.equals(characteristicValue, value),
+    "exclude": (characteristicValue: any, value: any): boolean => !this.equals(characteristicValue, value),
+    "not equals": (characteristicValue: any, value: any): boolean => !this.equals(characteristicValue, value),
+    "contains": (characteristicValue: any, value: any): boolean => this.contains(characteristicValue, value),
+    "not contains": (characteristicValue: any, value: any): boolean => !this.contains(characteristicValue, value),
+    "not": (characteristicValue: any, value: any): boolean => !this.contains(characteristicValue, value)
+  }
+
   sort: Sort = { name: "", direction: "ASC" }
 
   headers: string[] = [];
@@ -137,9 +147,12 @@ export class ProjectsComponent implements OnInit {
     let visible = false;
     for (let key in this.filters) {
       const value = this.filters[key];
+      const operator = value.substring(0, value.indexOf(':'));
+      const text = value.substring(value.indexOf(':') + 1);
       const characteristic = project.characteristics.find(c => c.name === key);
       if (characteristic) {
-        visible = visible || (value === '' || String(characteristic.value).includes(value));
+        const filterMethod = this.operators[operator];
+        visible = visible || (filterMethod === undefined ? this.operators[''] : filterMethod)(characteristic.value, text);
       }
     }
     return visible;
@@ -163,6 +176,14 @@ export class ProjectsComponent implements OnInit {
       }
       return 0;
     });
+  }
+
+  private equals(characteristicValue: any, value: any) {
+    return value === '' || String(characteristicValue) === value;
+  }
+
+  private contains(characteristicValue: any, value: any) {
+    return value === '' || String(characteristicValue).includes(value);
   }
 
 }
