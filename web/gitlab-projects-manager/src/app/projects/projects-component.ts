@@ -46,7 +46,8 @@ export class ProjectsComponent implements OnInit {
     "not equals": (characteristicValue: any, value: any): boolean => !this.equals(characteristicValue, value),
     "contains": (characteristicValue: any, value: any): boolean => this.contains(characteristicValue, value),
     "not contains": (characteristicValue: any, value: any): boolean => !this.contains(characteristicValue, value),
-    "not": (characteristicValue: any, value: any): boolean => !this.contains(characteristicValue, value)
+    "not": (characteristicValue: any, value: any): boolean => !this.contains(characteristicValue, value),
+    "regex": (characteristicValue: any, value: any): boolean => this.regex(characteristicValue, value)
   }
 
   sort: Sort = { name: "", direction: "ASC" }
@@ -184,6 +185,11 @@ export class ProjectsComponent implements OnInit {
 
   private contains(characteristicValue: any, value: any) {
     return value === '' || String(characteristicValue).includes(value);
+  }
+
+  private regex(characteristicValue: any, value: any) {
+    const re = new RegExp(value);
+    return value === '' || re.test(characteristicValue);
   }
 
 }
