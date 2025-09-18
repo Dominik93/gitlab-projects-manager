@@ -7,34 +7,36 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body search-form">
-        @for (dependency of bumpDependencyInput.dependencies; track dependency) {
+        @for (dependency of bumpDependencyInput.dependencies; track dependency; let i = $index) {
         <div class="form-group row">
-          <div class="col-5">
+          <div class="col-6">
             <input type="text" [(ngModel)]="dependency.name" (ngModelChange)="onDependencyChanged($event)"
               class="form-control" id="dependencyInput" placeholder="Property">
           </div>
-          <div class="col-5">
+          <div class="col-4">
             <input type="text" [(ngModel)]="dependency.version" (ngModelChange)="onVersionChanged($event)"
               class="form-control" id="versionInput" placeholder="Version">
           </div>
+          @if(i + 1 == bumpDependencyInput.dependencies.length) {
+          <div class="col-1">
+            @if(bumpDependencyInput.dependencies.length > 1) {
+            <img src="dash.svg" (click)="onRemoveDependency()" alt="Dash">
+            }
+          </div>
+          <div class="col-1">
+            <img src="plus.svg" (click)="onAddNewDependency()" alt="Plus">
+          </div>
+          }
         </div>
         }
         <div class="form-group row">
-          <div class="col-5">
-            <button type="button" (click)="onAddNewDependency()" class="btn btn-dark">Add dependency</button>
-          </div>
-          <div class="col-5">
-            <button type="button" (click)="onRemoveDependency()" class="btn btn-dark">Remove dependency</button>
-          </div>
-        </div>
-        <div class="form-group row">
-          <div class="col-10">
+          <div class="col-12">
             <input type="text" [(ngModel)]="bumpDependencyInput.branch" class="form-control" id="branchInput"
               placeholder="Branch">
           </div>
         </div>
         <div class="form-group row">
-          <div class="col-10">
+          <div class="col-12">
             <input type="text" [(ngModel)]="bumpDependencyInput.message" class="form-control" id="branchInput"
               placeholder="Message">
           </div>

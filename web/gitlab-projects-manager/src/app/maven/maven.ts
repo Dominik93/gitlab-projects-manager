@@ -11,7 +11,7 @@ export type Dependency = {
 }
 
 export type BumpDependencyInput = {
-  dependencies?: Dependency[],
+  dependencies: Dependency[],
   message?: string,
   branch?: string,
 }
@@ -33,7 +33,7 @@ export class Maven {
   @Input()
   name: string = ""
 
-  bumpDependencyInput: BumpDependencyInput = { dependencies: [] };
+  bumpDependencyInput: BumpDependencyInput = { dependencies: [{ name: "", version: "" }] };
 
   selectedNamespace = "";
 
