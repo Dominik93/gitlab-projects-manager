@@ -237,13 +237,15 @@ async def get_search_result(name: str, result: str):
 @app.post("/namespace/{name}/search", tags=['file'], operation_id="search")
 async def post_search(name: str, request: SearchRequest):
     try:
+        config = read_configuration("config")
+        excluded = config.get_value("search.excluded")
         search_predicate = (of(request.search_text)
                             .map(lambda x: regexp_predicate(x) if request.search_regex else text_predicate(x))
                             .or_else_throw())
         file_predicate = (of(request.file_text)
                           .map(lambda x: regexp_predicate(x) if request.file_regex else text_predicate(x.split(',')))
                           .or_get(None))
-        search_configuration = SearchConfiguration(search_predicate, file_predicate, request.show_content)
+        search_configuration = SearchConfiguration(excluded, search_predicate, file_predicate, request.show_content)
         return search_entry_point(name, request.name, _get_projects_filters(request.projects_ids), search_configuration,
                                   ExceptionStrategy.RAISE)
     except Exception as e:

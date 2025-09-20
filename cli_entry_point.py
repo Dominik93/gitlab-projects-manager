@@ -22,6 +22,7 @@ excluded = config.get_value("project.excluded")
 included = config.get_value("project.included")
 default_branch = config.get_value("git.default_branch")
 directory = config.get_value("management.directory")
+excluded_directories = config.get_value("search.excluded")
 strategy = ExceptionStrategy.PASS
 
 
@@ -83,7 +84,7 @@ def _status(args):
 def _search(args):
     search_predicate = Predicate(args.search_text, args.search_regex)
     file_predicate = Predicate(of(args.file_text).map(lambda x: x.split(',')).or_get(None), args.file_regex)
-    search_configuration = SearchConfiguration(search_predicate, file_predicate, args.show_content)
+    search_configuration = SearchConfiguration(excluded_directories, search_predicate, file_predicate, args.show_content)
     results = search_entry_point(group_id, args.search_file, _get_projects_filters(args), search_configuration,
                                  ExceptionStrategy.PASS)
     write(args.search_file, results)

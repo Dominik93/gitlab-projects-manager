@@ -21,5 +21,8 @@
   },
   "management": {
     "directory": "/path"
+  },
+  "search": {
+    "excluded": [".git"]
   }
 }

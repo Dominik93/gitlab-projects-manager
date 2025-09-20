@@ -6,8 +6,6 @@ from commons.countable_processor import CountableProcessor, ExceptionStrategy
 from commons.logger import log, Level
 from commons.optional import Optional, of, empty
 
-EXCLUDED = ['.git']
-
 
 def text_predicate(text):
     return Predicate(text, None)
@@ -39,7 +37,9 @@ class Predicate:
 
 class SearchConfiguration:
 
-    def __init__(self, text_predicate: Predicate = None, file_predicate: Predicate = None, show_content: bool = None):
+    def __init__(self, excluded_directories: [str], text_predicate: Predicate = None, file_predicate: Predicate = None,
+                 show_content: bool = None):
+        self.excluded_directories = excluded_directories
         self.text_predicate = of(text_predicate)
         self.file_predicate = of(file_predicate)
         self.show_content = show_content
@@ -81,7 +81,7 @@ def _read(path):
 def _search_in_project(project: str, project_directory: str, config: SearchConfiguration) -> list:
     hits = []
     for (dirpath, dirnames, filenames) in os.walk(project_directory):
-        dirnames[:] = _filter_directories(dirnames)
+        dirnames[:] = _filter_directories(config, dirnames)
         for file in _filter_files(config, filenames):
             path = dirpath + '/' + file
             Hit(config, _read(path)).get_hit(project, file).if_present(lambda x: hits.append(x))
@@ -92,15 +92,16 @@ def _filter_files(config: SearchConfiguration, filenames):
     return config.file_predicate.map(lambda p: list(filter(lambda f: p.test(f), filenames))).or_get(filenames)
 
 
-def _filter_directories(dirnames):
-    return list(filter(lambda x: x not in EXCLUDED, dirnames))
+def _filter_directories(config: SearchConfiguration, dirnames):
+    return list(filter(lambda x: x not in config.excluded_directories, dirnames))
 
 
 def _get_path(directory: str, project: dict):
     return f"{directory}/{project['namespace']}/{project['name']}"
 
 
-def search(projects: list, directory: str, config: SearchConfiguration, exception_strategy: ExceptionStrategy = ExceptionStrategy.INTERRUPT):
+def search(projects: list, directory: str, config: SearchConfiguration,
+           exception_strategy: ExceptionStrategy = ExceptionStrategy.INTERRUPT):
     search_results = CountableProcessor(projects).run(
         lambda project: _search_in_project(project['name'], _get_path(directory, project), config),
         exception_strategy=exception_strategy)
