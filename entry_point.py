@@ -6,14 +6,23 @@ from commons.lists import partition, flat
 from commons.logger import get_logger
 from commons.store import create_store, Storage
 from commons.executor import AsyncExecutor
+from release_notes import add_release_note
 from git_actions import pull, clone, status, push, create_branch, commit, checkout, rollback
 from gitlab_actions import process, create_merge_reqeust
-from maven_actions import bump_dependency
+from maven_actions import bump_dependency, version, bump_parent
 from search import search, SearchConfiguration
+
+
+class ReleaseNotes:
+    version: str
+    message: str
+
 
 PARTITION_SIZE = 50
 
 logger = get_logger("EntryPoint")
+
+logger.info("init", f"Maven info {version()}")
 
 
 def get_namespaces_entry_point():
@@ -207,6 +216,34 @@ def bump_dependency_entry_point(name: str, dependency_name: str, dependency_vers
                 f"{list(map(lambda project: project['id'], filtered_projects))}")
     return CountableProcessor(filtered_projects).run(
         lambda project: bump_dependency(directory, dependency_name, dependency_version, project),
+        exception_strategy=exception_strategy)
+
+
+def bump_parent_entry_point(name: str, version: str, project_filters: list,
+                            exception_strategy: ExceptionStrategy):
+    config = read_configuration("config")
+    directory = config.get_value("management.directory")
+    projects = get_namespace_projects_entry_point(name)
+    filtered_projects = _filter_projects(project_filters, projects)
+    logger.info("bump_parent",
+                f"bump parent to {version} in: "
+                f"{list(map(lambda project: project['id'], filtered_projects))}")
+    return CountableProcessor(filtered_projects).run(
+        lambda project: bump_parent(directory, version, project),
+        exception_strategy=exception_strategy)
+
+
+def add_release_note_entry_point(name: str, release_note: ReleaseNotes, project_filters: list,
+                                 exception_strategy: ExceptionStrategy):
+    config = read_configuration("config")
+    directory = config.get_value("management.directory")
+    projects = get_namespace_projects_entry_point(name)
+    filtered_projects = _filter_projects(project_filters, projects)
+    logger.info("add_release_note",
+                f"add release {release_note.message} note to: "
+                f"{list(map(lambda project: project['id'], filtered_projects))}")
+    return CountableProcessor(filtered_projects).run(
+        lambda project: add_release_note(directory, release_note.version, release_note.message, project),
         exception_strategy=exception_strategy)
 
 

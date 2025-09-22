@@ -5,15 +5,26 @@ import { NamespaceService } from '../namespace/namespace-service';
 import { ProjectsService } from '../projects/projects-service';
 
 
+export type ReleaseNotes = {
+  version: string
+  message: string,
+}
+
+export type CommitInfo = {
+  branch: string
+  message: string,
+}
+
 export type Dependency = {
   name: string,
   version: string
 }
 
 export type BumpDependencyInput = {
+  parent: string,
+  releaseNotes: ReleaseNotes,
   dependencies: Dependency[],
-  message?: string,
-  branch?: string,
+  commit: CommitInfo,
 }
 
 @Component({
@@ -33,7 +44,10 @@ export class Maven {
   @Input()
   name: string = ""
 
-  bumpDependencyInput: BumpDependencyInput = { dependencies: [{ name: "", version: "" }] };
+  bumpDependencyInput: BumpDependencyInput = {
+    parent: "", releaseNotes: { version: "minor", message: "" },
+    commit: { branch: "", message: "" }, dependencies: [{ name: "", version: "" }]
+  };
 
   selectedNamespace = "";
 
@@ -54,16 +68,16 @@ export class Maven {
 
   onVersionChanged($version: any) {
     if (this.bumpDependencyInput.dependencies?.length == 1) {
-      this.bumpDependencyInput.branch = `feature/${this.bumpDependencyInput.dependencies[0].name}_${$version}`;
+      this.bumpDependencyInput.commit.branch = `feature/${this.bumpDependencyInput.dependencies[0].name}_${$version}`;
     }
-    this.bumpDependencyInput.message = `bump ${this.bumpDependencyInput.dependencies?.map(dep => dep.name + " " + dep.version).join(", ")}`;
+    this.bumpDependencyInput.commit.message = `bump ${this.bumpDependencyInput.dependencies?.map(dep => dep.name + " " + dep.version).join(", ")}`;
   }
 
-  onDependencyChanged($dependnecyName: any) {
+  onDependencyChanged($dependencyName: any) {
     if (this.bumpDependencyInput.dependencies?.length == 1) {
-      this.bumpDependencyInput.branch = `feature/${$dependnecyName}_${this.bumpDependencyInput.dependencies[0].version}`;
+      this.bumpDependencyInput.commit.branch = `feature/${$dependencyName}_${this.bumpDependencyInput.dependencies[0].version}`;
     }
-    this.bumpDependencyInput.message = `bump ${this.bumpDependencyInput.dependencies?.map(dep => dep.name + " " + dep.version).join(", ")}`;
+    this.bumpDependencyInput.commit.message = `bump ${this.bumpDependencyInput.dependencies?.map(dep => dep.name + " " + dep.version).join(", ")}`;
   }
 
   onBumpDependency() {

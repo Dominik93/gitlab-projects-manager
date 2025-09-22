@@ -8,7 +8,7 @@ from commons.store import create_store, Storage
 from entry_point import load_namespace_entry_point, pull_entry_point, status_entry_point, \
     clone_entry_point, \
     search_entry_point, push_entry_point, create_branch_entry_point, bump_dependency_entry_point, \
-    delete_namespace_entry_point, create_merge_request_entry_point
+    delete_namespace_entry_point, create_merge_request_entry_point, bump_parent_entry_point
 from project_filter import filter_projects, create_name_filter
 from search import Predicate, SearchConfiguration
 
@@ -30,7 +30,7 @@ def command_line_parser():
     parser = argparse.ArgumentParser(description='Gitlab project manager')
     parser.add_argument("--action",
                         choices=['load', 'delete', 'clone', 'pull', 'push', 'create-branch', 'status', 'search',
-                                 'bump-dependency'],
+                                 'bump-dependency', 'bump-parent', 'create-merge-request'],
                         help='Action to perform', required=True)
     parser.add_argument("--project-name", help='Name of project')
 
@@ -49,6 +49,8 @@ def command_line_parser():
 
     parser.add_argument("--dependency-name", help='Action: bump-dependency - Dependency name')
     parser.add_argument("--dependency-version", help='Action: bump-dependency - Dependency version')
+
+    parser.add_argument("--parent-version", help='Action: bump-parent - Parent version')
 
     parser.add_argument("--title", help='Action: create-merge-request - Title of MR')
     parser.add_argument("--source", help='Action: create-merge-request - Source branch of MR')
@@ -90,6 +92,10 @@ def _search(args):
     write(args.search_file, results)
 
 
+def _bump_parent(args):
+    bump_parent_entry_point(group_id, args.parent_version, _get_projects_filters(args), ExceptionStrategy.PASS)
+
+
 def _bump_dependency(args):
     bump_dependency_entry_point(group_id, args.dependency_name, args.dependency_version, _get_projects_filters(args),
                                 ExceptionStrategy.PASS)
@@ -113,6 +119,7 @@ actions = {
     "push": _push,
     "search": _search,
     "bump-dependency": _bump_dependency,
+    "bump-parent": _bump_parent,
     "create-branch": _create_branch,
     "create-merge-request": _create_merge_request
 }

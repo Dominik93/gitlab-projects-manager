@@ -7,6 +7,21 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body search-form">
+        <div class="form-group row">
+          <div class="col-12">
+            <input type="text" [(ngModel)]="bumpDependencyInput.releaseNotes.version" class="form-control" id="release_version" placeholder="Release version">
+          </div>
+        </div>
+        <div class="form-group row">
+          <div class="col-12">
+            <input type="text" [(ngModel)]="bumpDependencyInput.releaseNotes.message" class="form-control" id="release_message" placeholder="Release message">
+          </div>
+        </div>
+        <div class="form-group row">
+          <div class="col-12">
+            <input type="text" [(ngModel)]="bumpDependencyInput.parent" class="form-control" id="parent" placeholder="Parent version">
+          </div>
+        </div>
         @for (dependency of bumpDependencyInput.dependencies; track dependency; let i = $index) {
         <div class="form-group row">
           <div class="col-6">
@@ -31,13 +46,13 @@
         }
         <div class="form-group row">
           <div class="col-12">
-            <input type="text" [(ngModel)]="bumpDependencyInput.branch" class="form-control" id="branchInput"
+            <input type="text" [(ngModel)]="bumpDependencyInput.commit.branch" class="form-control" id="branchInput"
               placeholder="Branch">
           </div>
         </div>
         <div class="form-group row">
           <div class="col-12">
-            <input type="text" [(ngModel)]="bumpDependencyInput.message" class="form-control" id="branchInput"
+            <input type="text" [(ngModel)]="bumpDependencyInput.commit.message" class="form-control" id="branchInput"
               placeholder="Message">
           </div>
         </div>
@@ -45,7 +60,7 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
         <button type="button" class="btn btn-dark" data-bs-dismiss="modal" (click)="onBumpDependency()"
-          [disabled]="!bumpDependencyInput.branch || !bumpDependencyInput.dependencies || !bumpDependencyInput.message">Bump</button>
+          [disabled]="!bumpDependencyInput.commit.branch || !bumpDependencyInput.dependencies || !bumpDependencyInput.commit.message">Bump</button>
       </div>
     </div>
   </div>

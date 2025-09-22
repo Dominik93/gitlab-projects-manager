@@ -18,7 +18,8 @@ from entry_point import load_namespace_entry_point, pull_entry_point, clone_entr
     status_entry_point, checkout_entry_point, rollback_entry_point, \
     search_entry_point, create_branch_entry_point, bump_dependency_entry_point, push_entry_point, commit_entry_point, \
     delete_namespace_entry_point, get_namespaces_entry_point, get_namespace_projects_entry_point, \
-    get_search_results_entry_point, get_search_result_entry_point, create_merge_request_entry_point
+    get_search_results_entry_point, get_search_result_entry_point, create_merge_request_entry_point, \
+    bump_parent_entry_point, add_release_note_entry_point
 from project_filter import filter_projects, create_id_filter
 from search import SearchConfiguration, text_predicate, regexp_predicate
 
@@ -50,10 +51,21 @@ class SearchRequest(CamelModel):
     show_content: bool = False
 
 
-class BumpDependencyRequest(CamelModel):
-    projects_ids: list = []
-    dependency: str
+class BumpDependency(CamelModel):
+    name: str
     version: str
+
+
+class ReleaseNotes(CamelModel):
+    version: str
+    message: str
+
+
+class BumpDependenciesRequest(CamelModel):
+    release_notes: ReleaseNotes
+    projects_ids: list = []
+    dependencies: list[BumpDependency]
+    parent: str
 
 
 class CreateMergeRequestRequest(CamelModel):
@@ -252,11 +264,14 @@ async def post_search(name: str, request: SearchRequest):
         return _internal_server_error(e)
 
 
-@app.patch("/namespace/{name}/bump-dependency", tags=['maven'], operation_id="bump_dependency")
-async def patch_bump_dependency(name: str, request: BumpDependencyRequest):
+@app.patch("/namespace/{name}/bump-dependencies", tags=['maven'], operation_id="bump_dependencies")
+async def patch_bump_dependencies(name: str, request: BumpDependenciesRequest):
     try:
-        bump_dependency_entry_point(name, request.dependency, request.version,
-                                    _get_projects_filters(request.projects_ids), ExceptionStrategy.RAISE)
+        projects = _get_projects_filters(request.projects_ids)
+        bump_parent_entry_point(name, request.parent, projects, ExceptionStrategy.RAISE)
+        for dependency in request.dependencies:
+            bump_dependency_entry_point(name, dependency.name, dependency.version, projects, ExceptionStrategy.RAISE)
+        add_release_note_entry_point(name, request.release_notes, projects, ExceptionStrategy.RAISE)
     except Exception as e:
         return _internal_server_error(e)
 
