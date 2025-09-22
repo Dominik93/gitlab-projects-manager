@@ -21,10 +21,10 @@
           <th scope="col">
             <span (click)="onHeaderClick(header)">{{header}}</span>
             @if (sort.name == header && sort.direction === 'DESC') {
-            <img src="arrow-up.svg" alt="Up">
+            <img src="resources/arrow-up.svg" alt="Up">
             }
             @if (sort.name == header && sort.direction === 'ASC') {
-            <img src="arrow-down.svg" alt="Down">
+            <img src="resources/arrow-down.svg" alt="Down">
             }
           </th>
           }

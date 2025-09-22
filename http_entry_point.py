@@ -1,12 +1,13 @@
 import json
 import traceback
 import uvicorn
+import mimetypes
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_camelcase import CamelModel
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, JSONResponse
+from starlette.responses import HTMLResponse, JSONResponse, Response
 from starlette.staticfiles import StaticFiles
 
 from commons.configuration_manager import read_configuration, save_configuration
@@ -101,9 +102,18 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get('/')
 def get_app_angular():
+    print('get')
     with open('static/index.html', 'r') as file_index:
         html_content = file_index.read()
     return HTMLResponse(html_content, status_code=200)
+
+
+@app.get('/resources/{name}')
+def get_resources(name: str):
+    file = f'static/{name}'
+    with open(file, 'r') as resource:
+        content = resource.read()
+    return Response(content=content, media_type=mimetypes.guess_type(file)[0])
 
 
 @app.get("/config", tags=['config'], operation_id="get_config")
