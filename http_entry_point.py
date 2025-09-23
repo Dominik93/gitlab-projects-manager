@@ -102,7 +102,6 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get('/')
 def get_app_angular():
-    print('get')
     with open('static/index.html', 'r') as file_index:
         html_content = file_index.read()
     return HTMLResponse(html_content, status_code=200)

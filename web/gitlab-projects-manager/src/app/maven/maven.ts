@@ -59,25 +59,25 @@ export class Maven {
   }
 
   onAddNewDependency() {
-    this.bumpDependencyInput.dependencies?.push({ name: "", version: "" });
+    this.bumpDependencyInput.dependencies.push({ name: "", version: "" });
   }
 
   onRemoveDependency() {
-    this.bumpDependencyInput.dependencies?.pop();
+    this.bumpDependencyInput.dependencies.pop();
   }
 
   onVersionChanged($version: any) {
-    if (this.bumpDependencyInput.dependencies?.length == 1) {
+    if (this.bumpDependencyInput.dependencies.length == 1) {
       this.bumpDependencyInput.commit.branch = `feature/${this.bumpDependencyInput.dependencies[0].name}_${$version}`;
     }
-    this.bumpDependencyInput.commit.message = `bump ${this.bumpDependencyInput.dependencies?.map(dep => dep.name + " " + dep.version).join(", ")}`;
+    this.bumpDependencyInput.commit.message = `bump ${this.bumpDependencyInput.dependencies.map(dep => dep.name + " " + dep.version).join(", ")}`;
   }
 
   onDependencyChanged($dependencyName: any) {
-    if (this.bumpDependencyInput.dependencies?.length == 1) {
+    if (this.bumpDependencyInput.dependencies.length == 1) {
       this.bumpDependencyInput.commit.branch = `feature/${$dependencyName}_${this.bumpDependencyInput.dependencies[0].version}`;
     }
-    this.bumpDependencyInput.commit.message = `bump ${this.bumpDependencyInput.dependencies?.map(dep => dep.name + " " + dep.version).join(", ")}`;
+    this.bumpDependencyInput.commit.message = `bump ${this.bumpDependencyInput.dependencies.map(dep => dep.name + " " + dep.version).join(", ")}`;
   }
 
   onBumpDependency() {

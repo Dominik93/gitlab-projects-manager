@@ -9,7 +9,7 @@ from commons.executor import AsyncExecutor
 from release_notes import add_release_note
 from git_actions import pull, clone, status, push, create_branch, commit, checkout, rollback
 from gitlab_actions import process, create_merge_reqeust
-from maven_actions import bump_dependency, version, bump_parent
+from maven_actions import bump_dependency, bump_parent
 from search import search, SearchConfiguration
 
 
@@ -21,8 +21,6 @@ class ReleaseNotes:
 PARTITION_SIZE = 50
 
 logger = get_logger("EntryPoint")
-
-logger.info("init", f"Maven info {version()}")
 
 
 def get_namespaces_entry_point():

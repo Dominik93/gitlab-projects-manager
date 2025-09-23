@@ -52,9 +52,14 @@ export class ProjectsActions {
     this.progressBarService.start();
     this.gitActionsService.rollback(this.selectedNamespace, this.projects).subscribe({
       next: () => {
-        this.gitActionsService.checkout(this.selectedNamespace, this.projects).subscribe(
-          this.action(() => this.projectsService.reload())
-        )
+        this.gitActionsService.checkout(this.selectedNamespace, this.projects).subscribe({
+          next: () => {
+            this.gitActionsService.status(this.selectedNamespace, this.projects).subscribe(
+              this.action(() => this.projectsService.reload())
+            )
+          },
+          error: (errorResponse) => this.error(errorResponse)
+        })
       },
       error: (errorResponse) => this.error(errorResponse)
     });
@@ -62,7 +67,14 @@ export class ProjectsActions {
 
   onPull() {
     this.progressBarService.start();
-    this.gitActionsService.pull(this.selectedNamespace, this.projects).subscribe(this.action(() => this.projectsService.reload()));
+    this.gitActionsService.pull(this.selectedNamespace, this.projects).subscribe({
+      next: () => {
+        this.gitActionsService.status(this.selectedNamespace, this.projects).subscribe(
+          this.action(() => this.projectsService.reload())
+        )
+      },
+      error: (errorResponse) => this.error(errorResponse)
+    });
   }
 
   onStatus() {

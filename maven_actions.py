@@ -15,10 +15,6 @@ def _maven(command):
     return command_result
 
 
-def version():
-    return _maven("mvn --version")
-
-
 def bump_parent(directory: str, version: str, project: dict):
     if version != '':
         return

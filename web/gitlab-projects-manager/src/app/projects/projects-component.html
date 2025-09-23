@@ -14,7 +14,7 @@
         <tr>
           <th class="column-selection">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" [checked]="true" (change)="onSelectAll($event)" id="flexCheckDefault">
+              <input class="form-check-input" type="checkbox" [checked]="true" [disabled]="loading" (change)="onSelectAll($event)" id="select_all">
             </div>
           </th>
           @for (header of headers; track header) {
@@ -35,7 +35,7 @@
         <tr>
           <td class="column-selection">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" [checked]="project.selected" (change)="onSelect($event, project)" id="flexCheckDefault">
+              <input class="form-check-input" type="checkbox" [checked]="project.selected" [disabled]="loading" (change)="onSelect($event, project)" id="select">
             </div>
           </td>
           @for (characteristic of project.characteristics; track characteristic.name){
