@@ -31,7 +31,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (project of (projects | visible); track project['id']) {
+        @for (project of visibleProjects; track project['id']) {
         <tr>
           <td class="column-selection">
             <div class="form-check">

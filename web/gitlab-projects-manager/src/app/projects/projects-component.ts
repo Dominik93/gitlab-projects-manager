@@ -4,11 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { ProgressBarService } from '../progress-bar/progress-bar-service';
 import { ErrorStatusService } from '../error-status/error-status-service';
 import { NamespaceService } from '../namespace/namespace-service';
-import { VisiblePipe } from "./visible-pipe";
+import { VisibleFilterService } from "./visible-filter-service";
 
 export type Sort = {
   name: string,
   direction: 'ASC' | 'DESC'
+}
+
+export function defaultSort(): Sort {
+  return { name: "", direction: "ASC" }
 }
 
 export type Project = {
@@ -25,7 +29,7 @@ export type Characteristic = {
 
 @Component({
   selector: 'app-projects-component',
-  imports: [FormsModule, VisiblePipe],
+  imports: [FormsModule],
   templateUrl: './projects-component.html',
   styleUrl: './projects-component.css'
 })
@@ -39,6 +43,8 @@ export class ProjectsComponent implements OnInit {
 
   errorStatusService: ErrorStatusService = inject(ErrorStatusService);
 
+  visibleFilterService: VisibleFilterService = inject(VisibleFilterService);
+
   operators: { [id: string]: any; } = {
     "": (characteristicValue: any, value: any): boolean => this.contains(characteristicValue, value),
     "equals": (characteristicValue: any, value: any): boolean => this.equals(characteristicValue, value),
@@ -50,13 +56,15 @@ export class ProjectsComponent implements OnInit {
     "regex": (characteristicValue: any, value: any): boolean => this.regex(characteristicValue, value)
   }
 
-  sort: Sort = { name: "", direction: "ASC" }
+  sort: Sort = defaultSort();
 
   headers: string[] = [];
 
   selectedNamespace = "";
 
   projects: Project[] = [];
+
+  visibleProjects: Project[] = [];
 
   filters: { [id: string]: any } = {};
 
@@ -77,6 +85,7 @@ export class ProjectsComponent implements OnInit {
       p.visible = this.isVisible(p);
       p.selected = p.selected && p.visible;
     })
+    this.setVisibleProjects();
   }
 
   onSelectAll($event: any) {
@@ -100,6 +109,8 @@ export class ProjectsComponent implements OnInit {
         this.projects = this.createProjects(projects);
         this.headers = this.createHeaders(projects);
         this.projectsService.select(this.projects.filter(p => p.selected).map(p => p.id));
+        this.setVisibleProjects();
+        this.sort = defaultSort();
         this.progressBarService.stop();
       },
       error: (errorResponse: any) => {
@@ -190,6 +201,10 @@ export class ProjectsComponent implements OnInit {
   private regex(characteristicValue: any, value: any) {
     const re = new RegExp(value);
     return value === '' || re.test(characteristicValue);
+  }
+
+  private setVisibleProjects() {
+    this.visibleProjects = this.visibleFilterService.filter(this.projects);
   }
 
 }
