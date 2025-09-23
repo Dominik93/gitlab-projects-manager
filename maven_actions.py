@@ -16,7 +16,7 @@ def _maven(command):
 
 
 def bump_parent(directory: str, version: str, project: dict):
-    if version != '':
+    if version == '':
         return
     project_directory = f"{directory}/{project['namespace']}/{project['name']}"
     if os.path.isdir(project_directory):
@@ -24,7 +24,7 @@ def bump_parent(directory: str, version: str, project: dict):
 
 
 def bump_dependency(directory: str, dependency: str, version: str, project: dict):
-    if dependency != '' or version != '':
+    if dependency == '' or version == '':
         return
     project_directory = f"{directory}/{project['namespace']}/{project['name']}"
     if os.path.isdir(project_directory):
