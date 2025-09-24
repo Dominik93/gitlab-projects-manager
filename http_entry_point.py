@@ -27,6 +27,8 @@ from search import SearchConfiguration, text_predicate, regexp_predicate
 # import providers, do not remove
 from providers_implementation import *
 
+EXCEPTION_STRATEGY = ExceptionStrategy.RAISE
+
 
 class Filter(CamelModel):
     projects_ids: list = []
@@ -142,7 +144,7 @@ async def get_namespaces():
 @app.post("/namespace", tags=['namespace'], operation_id="add_namespace")
 async def post_add_namespace(request: AddGroupRequest):
     try:
-        load_namespace_entry_point(request.name, request.group)
+        load_namespace_entry_point(request.name.strip(), request.group.strip())
     except Exception as e:
         return _internal_server_error(e)
 
@@ -150,7 +152,7 @@ async def post_add_namespace(request: AddGroupRequest):
 @app.delete("/namespace/{name}", tags=['namespace'], operation_id="delete_namespace")
 async def delete_namespace(name: str):
     try:
-        delete_namespace_entry_point(name)
+        delete_namespace_entry_point(name.strip())
     except Exception as e:
         return _internal_server_error(e)
 
@@ -158,7 +160,7 @@ async def delete_namespace(name: str):
 @app.get("/namespace/{name}", tags=['namespace'], operation_id="get_namespace")
 async def get_namespace(name: str):
     try:
-        projects = get_namespace_projects_entry_point(name)
+        projects = get_namespace_projects_entry_point(name.strip())
         config = read_configuration("config")
         excluded = config.get_value("project.excluded")
         included = config.get_value("project.included")
@@ -176,7 +178,7 @@ async def get_namespace(name: str):
 @app.post("/namespace/{name}/push", tags=['git'], operation_id="push")
 async def post_push(name: str, project_filter: Filter):
     try:
-        push_entry_point(name, _get_projects_filters(project_filter.projects_ids), ExceptionStrategy.RAISE)
+        push_entry_point(name.strip(), _get_projects_filters(project_filter.projects_ids), EXCEPTION_STRATEGY)
     except Exception as e:
         return _internal_server_error(e)
 
@@ -184,8 +186,8 @@ async def post_push(name: str, project_filter: Filter):
 @app.post("/namespace/{name}/commit", tags=['git'], operation_id="commit")
 async def post_commit(name: str, request: CommitReqeust):
     try:
-        commit_entry_point(name, request.message, _get_projects_filters(request.projects_ids),
-                           ExceptionStrategy.RAISE)
+        commit_entry_point(name.strip(), request.message.strip(), _get_projects_filters(request.projects_ids),
+                           EXCEPTION_STRATEGY)
     except Exception as e:
         return _internal_server_error(e)
 
@@ -193,7 +195,7 @@ async def post_commit(name: str, request: CommitReqeust):
 @app.post("/namespace/{name}/rollback", tags=['git'], operation_id="rollback")
 async def post_rollback(name: str, request: Filter):
     try:
-        rollback_entry_point(name, _get_projects_filters(request.projects_ids), ExceptionStrategy.RAISE)
+        rollback_entry_point(name.strip(), _get_projects_filters(request.projects_ids), EXCEPTION_STRATEGY)
     except Exception as e:
         return _internal_server_error(e)
 
@@ -201,7 +203,7 @@ async def post_rollback(name: str, request: Filter):
 @app.post("/namespace/{name}/checkout", tags=['git'], operation_id="checkout")
 async def post_checkout(name: str, request: Filter):
     try:
-        checkout_entry_point(name, _get_projects_filters(request.projects_ids), ExceptionStrategy.RAISE)
+        checkout_entry_point(name.strip(), _get_projects_filters(request.projects_ids), EXCEPTION_STRATEGY)
     except Exception as e:
         return _internal_server_error(e)
 
@@ -209,7 +211,7 @@ async def post_checkout(name: str, request: Filter):
 @app.post("/namespace/{name}/pull", tags=['git'], operation_id="pull")
 async def post_pull(name: str, project_filter: Filter):
     try:
-        pull_entry_point(name, _get_projects_filters(project_filter.projects_ids), ExceptionStrategy.RAISE)
+        pull_entry_point(name.strip(), _get_projects_filters(project_filter.projects_ids), EXCEPTION_STRATEGY)
     except Exception as e:
         return _internal_server_error(e)
 
@@ -217,7 +219,7 @@ async def post_pull(name: str, project_filter: Filter):
 @app.post("/namespace/{name}/clone", tags=['git'], operation_id="clone")
 async def post_clone(name: str, project_filter: Filter):
     try:
-        clone_entry_point(name, _get_projects_filters(project_filter.projects_ids), ExceptionStrategy.RAISE)
+        clone_entry_point(name.strip(), _get_projects_filters(project_filter.projects_ids), EXCEPTION_STRATEGY)
     except Exception as e:
         return _internal_server_error(e)
 
@@ -225,7 +227,7 @@ async def post_clone(name: str, project_filter: Filter):
 @app.post("/namespace/{name}/status", tags=['git'], operation_id="status")
 async def post_status(name: str, project_filter: Filter):
     try:
-        status_entry_point(name, _get_projects_filters(project_filter.projects_ids), ExceptionStrategy.RAISE)
+        status_entry_point(name.strip(), _get_projects_filters(project_filter.projects_ids), EXCEPTION_STRATEGY)
     except Exception as e:
         return _internal_server_error(e)
 
@@ -233,8 +235,9 @@ async def post_status(name: str, project_filter: Filter):
 @app.post("/namespace/{name}/branch", tags=['git'], operation_id="create_branch")
 async def post_create_branch(name: str, request: CreateBranchRequest):
     try:
-        return create_branch_entry_point(name, request.branch, _get_projects_filters(request.projects_ids),
-                                         ExceptionStrategy.RAISE)
+        return create_branch_entry_point(name.strip(), request.branch.strip(),
+                                         _get_projects_filters(request.projects_ids),
+                                         EXCEPTION_STRATEGY)
     except Exception as e:
         return _internal_server_error(e)
 
@@ -242,7 +245,7 @@ async def post_create_branch(name: str, request: CreateBranchRequest):
 @app.get("/namespace/{name}/search", tags=['file'], operation_id="get_search_result")
 async def get_search_results(name: str):
     try:
-        return get_search_results_entry_point(name)
+        return get_search_results_entry_point(name.strip())
     except Exception as e:
         return _internal_server_error(e)
 
@@ -250,7 +253,7 @@ async def get_search_results(name: str):
 @app.get("/namespace/{name}/search/{result}", tags=['file'], operation_id="get_search_results")
 async def get_search_result(name: str, result: str):
     try:
-        return get_search_result_entry_point(name, result)
+        return get_search_result_entry_point(name.strip(), result.strip())
     except Exception as e:
         return _internal_server_error(e)
 
@@ -267,8 +270,9 @@ async def post_search(name: str, request: SearchRequest):
                           .map(lambda x: regexp_predicate(x) if request.file_regex else text_predicate(x.split(',')))
                           .or_get(None))
         search_configuration = SearchConfiguration(excluded, search_predicate, file_predicate, request.show_content)
-        return search_entry_point(name, request.name, _get_projects_filters(request.projects_ids), search_configuration,
-                                  ExceptionStrategy.RAISE)
+        return search_entry_point(name.strip(), request.name.strip(), _get_projects_filters(request.projects_ids),
+                                  search_configuration,
+                                  EXCEPTION_STRATEGY)
     except Exception as e:
         return _internal_server_error(e)
 
@@ -277,10 +281,11 @@ async def post_search(name: str, request: SearchRequest):
 async def patch_bump_dependencies(name: str, request: BumpDependenciesRequest):
     try:
         projects = _get_projects_filters(request.projects_ids)
-        bump_parent_entry_point(name, request.parent, projects, ExceptionStrategy.RAISE)
+        bump_parent_entry_point(name.strip(), request.parent.strip(), projects, EXCEPTION_STRATEGY)
         for dependency in request.dependencies:
-            bump_dependency_entry_point(name, dependency.name, dependency.version, projects, ExceptionStrategy.RAISE)
-        add_release_note_entry_point(name, request.release_notes, projects, ExceptionStrategy.RAISE)
+            bump_dependency_entry_point(name.strip(), dependency.name.strip(), dependency.version.strip(), projects,
+                                        EXCEPTION_STRATEGY)
+        add_release_note_entry_point(name.strip(), request.release_notes.strip(), projects, EXCEPTION_STRATEGY)
     except Exception as e:
         return _internal_server_error(e)
 
@@ -288,8 +293,8 @@ async def patch_bump_dependencies(name: str, request: BumpDependenciesRequest):
 @app.post("/namespace/{name}/create-merge-request", tags=['git'], operation_id="crate_merge_request")
 async def post_create_merge_request_dependency(name: str, request: CreateMergeRequestRequest):
     try:
-        create_merge_request_entry_point(name, request.title, request.source,
-                                         _get_projects_filters(request.projects_ids), ExceptionStrategy.RAISE)
+        create_merge_request_entry_point(name.strip(), request.title.strip(), request.source.strip(),
+                                         _get_projects_filters(request.projects_ids), EXCEPTION_STRATEGY)
     except Exception as e:
         return _internal_server_error(e)
 

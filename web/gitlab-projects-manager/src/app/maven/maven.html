@@ -60,7 +60,11 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
         <button type="button" class="btn btn-dark" data-bs-dismiss="modal" (click)="onBumpDependency()"
-          [disabled]="!bumpDependencyInput.commit.branch || !bumpDependencyInput.dependencies || !bumpDependencyInput.commit.message">Bump</button>
+          [disabled]="!bumpDependencyInput.dependencies ||
+            !bumpDependencyInput.releaseNotes.version ||
+            !bumpDependencyInput.releaseNotes.message ||
+            !bumpDependencyInput.commit.branch ||
+            !bumpDependencyInput.commit.message">Bump</button>
       </div>
     </div>
   </div>

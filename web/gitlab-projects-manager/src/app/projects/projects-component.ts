@@ -80,11 +80,16 @@ export class ProjectsComponent implements OnInit {
   }
 
   onFilterChange(filter: string, $event: any) {
-    this.filters[filter] = $event.target.value;
+    if ($event.target.value == '') {
+      delete this.filters[filter];
+    } else {
+      this.filters[filter] = $event.target.value;
+    }
     this.projects.forEach(p => {
       p.visible = this.isVisible(p);
       p.selected = p.selected && p.visible;
     })
+    this.projectsService.select(this.projects.filter(p => p.selected).map(p => p.id));
     this.setVisibleProjects();
   }
 
@@ -156,7 +161,10 @@ export class ProjectsComponent implements OnInit {
   }
 
   private isVisible(project: Project) {
-    let visible = false;
+    if (Object.keys(this.filters).length == 0) {
+      return true;
+    }
+    const visibility = []
     for (let key in this.filters) {
       const value = this.filters[key];
       const operator = value.substring(0, value.indexOf(':'));
@@ -164,10 +172,10 @@ export class ProjectsComponent implements OnInit {
       const characteristic = project.characteristics.find(c => c.name === key);
       if (characteristic) {
         const filterMethod = this.operators[operator];
-        visible = visible || (filterMethod === undefined ? this.operators[''] : filterMethod)(characteristic.value, text);
+        visibility.push((filterMethod === undefined ? this.operators[''] : filterMethod)(characteristic.value, text));
       }
     }
-    return visible;
+    return visibility.every(v => v);
   }
 
   onHeaderClick(header: string) {

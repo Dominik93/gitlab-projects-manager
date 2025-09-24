@@ -20,7 +20,8 @@ def bump_parent(directory: str, version: str, project: dict):
         return
     project_directory = f"{directory}/{project['namespace']}/{project['name']}"
     if os.path.isdir(project_directory):
-        _maven(f"mvn -f {project_directory} versions:update-parent -DparentVersion=[{version}] {parameters}")
+        parent_version = f"-DparentVersion=[{version}]"
+        _maven(f"mvn -f {project_directory} versions:update-parent {parent_version} {parameters}")
 
 
 def bump_dependency(directory: str, dependency: str, version: str, project: dict):
@@ -28,5 +29,6 @@ def bump_dependency(directory: str, dependency: str, version: str, project: dict
         return
     project_directory = f"{directory}/{project['namespace']}/{project['name']}"
     if os.path.isdir(project_directory):
-        _maven(
-            f"mvn -f {project_directory} versions:update-property -DgenerateBackupPoms=false -Dproperty={dependency}.version -DnewVersion=[{version}] {parameters}")
+        property = f"-Dproperty={dependency}.version"
+        new_version = f"-DnewVersion=[{version}]"
+        _maven(f"mvn -f {project_directory} versions:update-property {property} {new_version} {parameters}")
