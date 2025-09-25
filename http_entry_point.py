@@ -20,7 +20,7 @@ from entry_point import load_namespace_entry_point, pull_entry_point, clone_entr
     search_entry_point, create_branch_entry_point, bump_dependency_entry_point, push_entry_point, commit_entry_point, \
     delete_namespace_entry_point, get_namespaces_entry_point, get_namespace_projects_entry_point, \
     get_search_results_entry_point, get_search_result_entry_point, create_merge_request_entry_point, \
-    bump_parent_entry_point, add_release_note_entry_point
+    bump_parent_entry_point, add_release_note_entry_point, version_entry_point
 from project_filter import filter_projects, create_id_filter
 from search import SearchConfiguration, text_predicate, regexp_predicate
 
@@ -228,6 +228,7 @@ async def post_clone(name: str, project_filter: Filter):
 async def post_status(name: str, project_filter: Filter):
     try:
         status_entry_point(name.strip(), _get_projects_filters(project_filter.projects_ids), EXCEPTION_STRATEGY)
+        version_entry_point(name.strip(), _get_projects_filters(project_filter.projects_ids), EXCEPTION_STRATEGY)
     except Exception as e:
         return _internal_server_error(e)
 

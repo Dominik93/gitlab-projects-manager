@@ -15,6 +15,11 @@ def _maven(command):
     return command_result
 
 
+def version(directory: str, project: dict):
+    project_directory = f"{directory}/{project['namespace']}/{project['name']}"
+    return _maven(f'mvn -f {project_directory} help:evaluate -Dexpression=project.version -q -DforceStdout')
+
+
 def bump_parent(directory: str, version: str, project: dict):
     if version == '':
         return

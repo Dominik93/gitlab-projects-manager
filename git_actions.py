@@ -30,10 +30,8 @@ def status(directory: str, project: dict):
     project_directory = f"{directory}/{project['namespace']}/{project['name']}"
     current_branch = _git(f"git -C {project_directory} branch --show-current")
     project_status = _git(f"git -C {project_directory} status")
-    local_changes = not _is_clear(project_status)
-    project['current_branch'] = current_branch
-    project['local_changes'] = local_changes
-    project['modified'] = str(datetime.datetime.now())
+    project['status'] = f'{current_branch}({"pristine" if _is_clear(project_status) else "dirty" })'
+    project['modified'] = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
     return project
 
 

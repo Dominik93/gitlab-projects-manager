@@ -9,7 +9,7 @@ from commons.executor import AsyncExecutor
 from release_notes import add_release_note
 from git_actions import pull, clone, status, push, create_branch, commit, checkout, rollback
 from gitlab_actions import process, create_merge_reqeust
-from maven_actions import bump_dependency, bump_parent
+from maven_actions import bump_dependency, bump_parent, version
 from search import search, SearchConfiguration
 
 
@@ -61,6 +61,34 @@ def pull_entry_point(name: str, project_filters: list, exception_strategy: Excep
     for items in partition(projects, PARTITION_SIZE):
         async_executor.add(_pull_entry_point, [items, config_directory, default_branch, exception_strategy])
     async_executor.execute()
+
+
+def version_entry_point(name: str, project_filters: list, exception_strategy: ExceptionStrategy):
+    config = read_configuration("config")
+    config_directory = config.get_value("management.directory")
+    store = create_store(Storage.JSON)
+    projects = get_namespace_projects_entry_point(name)
+    group_id = get_namespace_id_entry_point(name)
+    filtered_projects = _filter_projects(project_filters, projects)
+    logger.info("clone", f"version projects: {list(map(lambda project: project['id'], filtered_projects))}")
+
+    async_executor = AsyncExecutor()
+    for items in partition(filtered_projects, PARTITION_SIZE):
+        async_executor.add(_version_entry_point, [items, config_directory, exception_strategy])
+    processed_projects = flat(async_executor.execute())
+
+    for project in projects:
+        for processed_project in processed_projects:
+            if project["id"] == processed_project["id"]:
+                project["version"] = processed_project["version"]
+    store.store({"id": group_id, "projects": projects}, f'resources/namespace/{name}')
+    return processed_projects
+
+
+def _version_entry_point(projects: list, config_directory: str,
+                         exception_strategy: ExceptionStrategy):
+    return CountableProcessor(projects).run(lambda project: version(config_directory, project),
+                                     exception_strategy=exception_strategy)
 
 
 def _pull_entry_point(projects: list, config_directory: str, default_branch: str,
@@ -154,8 +182,7 @@ def status_entry_point(name: str, project_filters: list, exception_strategy: Exc
     for project in projects:
         for processed_project in processed_projects:
             if project["id"] == processed_project["id"]:
-                project["current_branch"] = processed_project["current_branch"]
-                project["local_changes"] = processed_project["local_changes"]
+                project["status"] = processed_project["status"]
                 project["modified"] = processed_project["modified"]
     store.store({"id": group_id, "projects": projects}, f'resources/namespace/{name}')
     return processed_projects
