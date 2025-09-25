@@ -285,7 +285,7 @@ async def patch_bump_dependencies(name: str, request: BumpDependenciesRequest):
         for dependency in request.dependencies:
             bump_dependency_entry_point(name.strip(), dependency.name.strip(), dependency.version.strip(), projects,
                                         EXCEPTION_STRATEGY)
-        add_release_note_entry_point(name.strip(), request.release_notes.strip(), projects, EXCEPTION_STRATEGY)
+        add_release_note_entry_point(name.strip(), request.release_notes, projects, EXCEPTION_STRATEGY)
     except Exception as e:
         return _internal_server_error(e)
 
