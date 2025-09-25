@@ -9,7 +9,8 @@ from commons.executor import AsyncExecutor
 from release_notes import add_release_note
 from git_actions import pull, clone, status, push, create_branch, commit, checkout, rollback
 from gitlab_actions import process, create_merge_reqeust
-from maven_actions import bump_dependency, bump_parent, version
+from maven_actions import bump_dependency as maven_bump_dependency, bump_parent, version as maven_version
+from npm_actions import bump_dependency as npm_bump_dependency, version as npm_version
 from search import search, SearchConfiguration
 
 
@@ -87,8 +88,15 @@ def version_entry_point(name: str, project_filters: list, exception_strategy: Ex
 
 def _version_entry_point(projects: list, config_directory: str,
                          exception_strategy: ExceptionStrategy):
-    return CountableProcessor(projects).run(lambda project: version(config_directory, project),
-                                     exception_strategy=exception_strategy)
+    return CountableProcessor(projects).run(lambda project: _version(config_directory, project),
+                                            exception_strategy=exception_strategy)
+
+
+def _version(directory: str, project: dict):
+    if project["package_manager"] == "npm":
+        npm_version(directory, project)
+    elif project["package_manager"] == "mvn":
+        maven_version(directory, project)
 
 
 def _pull_entry_point(projects: list, config_directory: str, default_branch: str,
@@ -241,8 +249,15 @@ def bump_dependency_entry_point(name: str, dependency_name: str, dependency_vers
                 f"bump {dependency_name} to {dependency_version} in: "
                 f"{list(map(lambda project: project['id'], filtered_projects))}")
     return CountableProcessor(filtered_projects).run(
-        lambda project: bump_dependency(directory, dependency_name, dependency_version, project),
+        lambda project: _bump_dependency(directory, dependency_name, dependency_version, project),
         exception_strategy=exception_strategy)
+
+
+def _bump_dependency(directory: str, dependency: str, version: str, project: dict):
+    if project["package_manager"] == "npm":
+        npm_bump_dependency(directory, dependency, version, project)
+    elif project["package_manager"] == "mvn":
+        maven_bump_dependency(directory, dependency, version, project)
 
 
 def bump_parent_entry_point(name: str, version: str, project_filters: list,

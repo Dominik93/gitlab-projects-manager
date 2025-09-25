@@ -29,3 +29,8 @@ def name_provider(project):
 @add_provider('url')
 def url_provider(project):
     return project['web_url']
+
+
+@add_provider('package_manager')
+def package_manager_provider(project):
+    return "mvn" # write of impl
