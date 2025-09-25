@@ -22,8 +22,7 @@ def clone(directory: str, project: dict):
     project_directory = f"{directory}/{project['namespace']}/{project['name']}"
     if not os.path.isdir(project_directory):
         _git(f"git clone {project['ssh']} {project_directory}")
-    project['cloned'] = True
-    return project
+    return status(directory, project)
 
 
 def status(directory: str, project: dict):

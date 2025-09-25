@@ -70,7 +70,7 @@ def version_entry_point(name: str, project_filters: list, exception_strategy: Ex
     projects = get_namespace_projects_entry_point(name)
     group_id = get_namespace_id_entry_point(name)
     filtered_projects = _filter_projects(project_filters, projects)
-    logger.info("clone", f"version projects: {list(map(lambda project: project['id'], filtered_projects))}")
+    logger.info("version", f"version projects: {list(map(lambda project: project['id'], filtered_projects))}")
 
     async_executor = AsyncExecutor()
     for items in partition(filtered_projects, PARTITION_SIZE):
@@ -155,7 +155,8 @@ def clone_entry_point(name: str, project_filters: list, exception_strategy: Exce
     for project in projects:
         for processed_project in processed_projects:
             if project["id"] == processed_project["id"]:
-                project["cloned"] = processed_project["cloned"]
+                project["status"] = processed_project["status"]
+                project["modified"] = processed_project["modified"]
     store.store({"id": group_id, "projects": projects}, f'resources/namespace/{name}')
     return processed_projects
 

@@ -165,12 +165,8 @@ async def get_namespace(name: str):
         excluded = config.get_value("project.excluded")
         included = config.get_value("project.included")
         projects = filter_projects(projects, excluded, included)
-        providers = _get_blocked_providers()
-        for project in projects:
-            for key in providers:
-                if key in project:
-                    del project[key]
-        return projects
+        blocked_providers = _get_blocked_providers(projects)
+        return _filter_project_characteristic(projects, blocked_providers)
     except Exception as e:
         return _internal_server_error(e)
 
@@ -310,11 +306,25 @@ def _get_projects_filters(ids: list):
     ]
 
 
-def _get_blocked_providers():
+def _filter_project_characteristic(projects, blocked_providers):
+    for project in projects:
+        for key in blocked_providers:
+            if key in project:
+                del project[key]
+    return projects
+
+
+def _get_blocked_providers(projects):
     config = read_configuration("config")
     ui_providers = config.get_value("providers.ui")
     loader_providers = config.get_value("providers.loader")
+
     blocked_providers = set()
+    for project in projects:
+        for key in project:
+            if key not in loader_providers:
+                blocked_providers.add(key)
+
     for provider in loader_providers:
         if provider not in ui_providers:
             blocked_providers.add(provider)

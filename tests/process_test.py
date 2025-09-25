@@ -2,6 +2,9 @@ import unittest
 
 from gitlab_actions import process_pages
 
+# import providers, do not remove
+from providers_implementation import *
+
 component = {
     '_links': {
         'cluster_agents': 'https://gitlab/api/v4/projects/34292/cluster_agents',
