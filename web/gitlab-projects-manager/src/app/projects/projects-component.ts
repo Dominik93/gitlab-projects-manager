@@ -185,7 +185,7 @@ export class ProjectsComponent implements OnInit {
       this.sort.name = header;
       this.sort.direction = 'ASC';
     }
-    this.projects = this.projects.sort((p1, p2) => {
+    this.visibleProjects = this.visibleProjects.sort((p1, p2) => {
       const v1 = p1.characteristics.find(c => c.name === this.sort.name)?.value || '';
       const v2 = p2.characteristics.find(c => c.name === this.sort.name)?.value || '';
       if (v1 > v2) {
