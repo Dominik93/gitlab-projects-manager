@@ -94,9 +94,9 @@ def _version_entry_point(projects: list, config_directory: str,
 
 def _version(directory: str, project: dict):
     if project["package_manager"] == "npm":
-        npm_version(directory, project)
+        return npm_version(directory, project)
     elif project["package_manager"] == "mvn":
-        maven_version(directory, project)
+        return  maven_version(directory, project)
 
 
 def _pull_entry_point(projects: list, config_directory: str, default_branch: str,
