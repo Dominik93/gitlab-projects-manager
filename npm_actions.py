@@ -14,7 +14,7 @@ def _npm(command):
 
 def install(directory: str, project: dict):
     project_directory = f"{directory}/{project['namespace']}/{project['name']}"
-    _npm(f'npm --prefix {project_directory} i')
+    _npm(f'cd {project_directory} && npm i')
 
 
 def version(directory: str, project: dict):
