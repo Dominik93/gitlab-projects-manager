@@ -2,7 +2,7 @@ import os
 
 from commons.configuration_manager import read_configuration
 from commons.countable_processor import CountableProcessor, ExceptionStrategy
-from commons.lists import partition, flat
+from commons.lists import partition_by_number, flat
 from commons.logger import get_logger
 from commons.store import create_store, Storage
 from commons.executor import AsyncExecutor
@@ -19,7 +19,7 @@ class ReleaseNotes:
     message: str
 
 
-PARTITION_SIZE = 50
+PARTITIONS = 5
 
 logger = get_logger("EntryPoint")
 
@@ -59,7 +59,7 @@ def pull_entry_point(name: str, project_filters: list, exception_strategy: Excep
     projects = _filter_projects(project_filters, projects)
     logger.info("pull", f"pull projects: {list(map(lambda project: project['id'], projects))}")
     async_executor = AsyncExecutor()
-    for items in partition(projects, PARTITION_SIZE):
+    for items in partition_by_number(projects, PARTITIONS):
         async_executor.add(_pull_entry_point, [items, config_directory, default_branch, exception_strategy])
     async_executor.execute()
 
@@ -74,7 +74,7 @@ def version_entry_point(name: str, project_filters: list, exception_strategy: Ex
     logger.info("version", f"version projects: {list(map(lambda project: project['id'], filtered_projects))}")
 
     async_executor = AsyncExecutor()
-    for items in partition(filtered_projects, PARTITION_SIZE):
+    for items in partition_by_number(filtered_projects, PARTITIONS):
         async_executor.add(_version_entry_point, [items, config_directory, exception_strategy])
     processed_projects = flat(async_executor.execute())
 
@@ -156,7 +156,7 @@ def clone_entry_point(name: str, project_filters: list, exception_strategy: Exce
     logger.info("clone", f"clone projects: {list(map(lambda project: project['id'], filtered_projects))}")
 
     async_executor = AsyncExecutor()
-    for items in partition(filtered_projects, PARTITION_SIZE):
+    for items in partition_by_number(filtered_projects, PARTITIONS):
         async_executor.add(_clone_entry_point, [items, config_directory, exception_strategy])
     processed_projects = flat(async_executor.execute())
 
@@ -184,7 +184,7 @@ def status_entry_point(name: str, project_filters: list, exception_strategy: Exc
     logger.info("status", f"check status of projects: {list(map(lambda project: project['id'], filtered_projects))}")
 
     async_executor = AsyncExecutor()
-    for items in partition(filtered_projects, PARTITION_SIZE):
+    for items in partition_by_number(filtered_projects, PARTITIONS):
         async_executor.add(_status_entry_point, [items, config_directory, exception_strategy])
     processed_projects = flat(async_executor.execute())
 
