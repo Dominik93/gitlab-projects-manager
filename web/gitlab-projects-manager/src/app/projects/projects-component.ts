@@ -47,6 +47,8 @@ export class ProjectsComponent implements OnInit {
 
   operators: { [id: string]: any; } = {
     "": (characteristicValue: any, value: any): boolean => this.contains(characteristicValue, value),
+    "isEmpty": (characteristicValue: any, _: any): boolean => this.isEmpty(characteristicValue),
+    "isNotEmpty": (characteristicValue: any, _: any): boolean => !this.isEmpty(characteristicValue),
     "equals": (characteristicValue: any, value: any): boolean => this.equals(characteristicValue, value),
     "exclude": (characteristicValue: any, value: any): boolean => !this.equals(characteristicValue, value),
     "not equals": (characteristicValue: any, value: any): boolean => !this.equals(characteristicValue, value),
@@ -204,6 +206,10 @@ export class ProjectsComponent implements OnInit {
 
   private contains(characteristicValue: any, value: any) {
     return value === '' || String(characteristicValue).includes(value);
+  }
+  
+  private isEmpty(characteristicValue: any) {
+    return characteristicValue === '';
   }
 
   private regex(characteristicValue: any, value: any) {
