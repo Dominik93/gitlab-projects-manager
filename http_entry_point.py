@@ -166,7 +166,8 @@ async def get_namespace(name: str):
         included = config.get_value("project.included")
         projects = filter_projects(projects, excluded, included)
         blocked_providers = _get_blocked_providers(projects)
-        return _filter_project_characteristic(projects, blocked_providers)
+        projects = _filter_project_characteristic(projects, blocked_providers)
+        return _get_projects_with_sorted_characteristics(projects)
     except Exception as e:
         return _internal_server_error(e)
 
@@ -304,6 +305,18 @@ def _get_projects_filters(ids: list):
         lambda projects: filter_projects(projects, excluded, included),
         lambda projects: filter_projects(projects, {}, create_id_filter(ids))
     ]
+
+
+def _get_projects_with_sorted_characteristics(projects):
+    config = read_configuration("config")
+    characteristics = config.get_value("providers.ui")
+    sorted_projects = []
+    for project in projects:
+        new_characteristics = {}
+        for characteristic in characteristics:
+            new_characteristics[characteristic] = project[characteristic]
+        sorted_projects.append(new_characteristics)
+    return sorted_projects
 
 
 def _filter_project_characteristic(projects, blocked_providers):
