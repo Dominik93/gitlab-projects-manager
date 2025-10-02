@@ -314,7 +314,7 @@ def _get_projects_with_sorted_characteristics(projects):
     for project in projects:
         new_characteristics = {}
         for characteristic in characteristics:
-            new_characteristics[characteristic] = project[characteristic]
+            new_characteristics[characteristic] = project[characteristic] if characteristic in project else ""
         sorted_projects.append(new_characteristics)
     return sorted_projects
 
